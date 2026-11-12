@@ -35,7 +35,7 @@
 </head>
 <body>
   <header>
-    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● RADAR</span></h1>
+    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● PRO GATE</span></h1>
     <div id="gps-status">GPS en attente</div>
   </header>
   <div class="grid">
@@ -186,10 +186,28 @@
 
     function startGate() {
       initSensors();
-      const aCtx = new (window.AudioContext || window.webkitAudioContext)();
-      [0.5, 1.1, 1.7].forEach(t => { const o = aCtx.createOscillator(); o.frequency.value = 632; o.connect(aCtx.destination); o.start(aCtx.currentTime + t); o.stop(aCtx.currentTime + t + 0.15); });
-      const o4 = aCtx.createOscillator(); o4.frequency.value = 950; o4.connect(aCtx.destination); o4.start(aCtx.currentTime + 2.3); o4.stop(aCtx.currentTime + 2.7);
-      setTimeout(() => { if (!isRunning) startRun(); }, 2300);
+      const phrase1 = new SpeechSynthesisUtterance("OK riders, random start");
+      phrase1.lang = "en-US"; phrase1.rate = 0.9;
+      const phrase2 = new SpeechSynthesisUtterance("Riders ready, watch the gate");
+      phrase2.lang = "en-US"; phrase2.rate = 0.9;
+
+      window.speechSynthesis.speak(phrase1);
+      phrase1.onend = function() {
+        setTimeout(() => { window.speechSynthesis.speak(phrase2); }, 400);
+      };
+
+      phrase2.onend = function() {
+        setTimeout(() => {
+          const aCtx = new (window.AudioContext || window.webkitAudioContext)();
+          [0.1, 0.7, 1.3].forEach(t => {
+            const o = aCtx.createOscillator(); o.frequency.value = 632; o.connect(aCtx.destination);
+            o.start(aCtx.currentTime + t); o.stop(aCtx.currentTime + t + 0.12);
+          });
+          const o4 = aCtx.createOscillator(); o4.frequency.value = 950; o4.connect(aCtx.destination);
+          o4.start(aCtx.currentTime + 1.9); o4.stop(aCtx.currentTime + 2.3);
+          setTimeout(() => { if (!isRunning) startRun(); }, 1900);
+        }, 600);
+      };
     }
 
     function startRun() {
