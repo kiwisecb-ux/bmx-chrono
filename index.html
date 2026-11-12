@@ -7,1026 +7,381 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>BMX iPhone Pro</title>
   <link rel="stylesheet" href="https://unpkg.com" />
-  <script src="https://unpkg.com"></script>
-  <script src="https://jsdelivr.net"></script>
   <style>
-    :root { --bg: #090d16; --card: #151c2c; --accent: #f97316; --green: #22c55e; --text: #f8fafc; }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 14px; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    h1 { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin: 0; text-transform: uppercase; }
-    .badge { font-size: 0.72rem; background: #1e293b; padding: 4px 8px; border-radius: 6px; color: #94a3b8; }
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --text: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 40px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    h1 { font-size: 1.2rem; font-weight: 800; letter-spacing: 0.5px; }
+    #gps-status { font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; background: #334155; font-weight: 600; }
+    .gps-ok { background: rgba(34, 197, 94, 0.2) !important; color: var(--green); }
+    
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .card { background: var(--card); padding: 12px; border-radius: 14px; text-align: center; border: 1px solid #1e293b; }
-    .val { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .lbl { font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-    #map { height: 210px; border-radius: 14px; margin-bottom: 12px; border: 1px solid #1e293b; }
-    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-    button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 0.92rem; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
-    .btn-start { background: var(--accent); color: white; font-size: 1.05rem; }
-    .btn-stop { background: #ef4444; color: white; font-size: 1.05rem; display: none; }
-    .btn-sec { background: #1e293b; color: #e2e8f0; font-size: 0.82rem; padding: 11px; margin-bottom: 0; }
-    .chart-box { background: var(--card); padding: 10px; border-radius: 14px; margin-bottom: 12px; }
-    .section-title { font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; margin: 12px 0 6px 0; font-weight: 700; }
-    .list-box { background: var(--card); padding: 10px; border-radius: 14px; font-size: 0.82rem; max-height: 160px; overflow-y: auto; }
-    .item { border-bottom: 1px solid #1e293b; padding: 7px 0; display: flex; justify-content: space-between; }
-    .item:last-child { border-bottom: none; }
+    .card { background: var(--card); border-radius: 14px; padding: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+    .val { font-size: 1.8rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); }
+    .val.main-chrono { font-size: 2.2rem; color: #fff; }
+    .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    button { border: none; border-radius: 12px; padding: 12px 8px; font-size: 0.85rem; font-weight: 700; color: #fff; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    
+    .btn-blue { background: #0284c7; }
+    .btn-orange { background: var(--orange); color: #000; }
+    .btn-green { background: var(--green); color: #000; }
+    .btn-red { background: var(--red); }
+    .btn-gray { background: #475569; }
+    .full-width { grid-column: span 2; }
+
+    #map { height: 240px; width: 100%; border-radius: 14px; margin-bottom: 8px; z-index: 1; }
+    .hint { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-bottom: 12px; }
+
+    .section-box { background: var(--card); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .section-title { font-size: 0.9rem; font-weight: 700; }
+    .list-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; font-size: 0.85rem; }
+    .list-item:last-child { border-bottom: none; }
+    .badge { background: #334155; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
   </style>
 </head>
 <body>
 
-  <div class="header">
+  <header>
     <h1>BMX iPhone Pro</h1>
-    <span class="badge" id="gpsStatus">GPS...</span>
-  </div>
+    <div id="gps-status">GPS...</div>
+  </header>
 
-  <!-- Compteurs Temps Réel -->
   <div class="grid">
-    <div class="card"><div class="val" id="chrono">00.00</div><div class="lbl">Chrono (s)</div></div>
-    <div class="card"><div class="val" id="speed">0.0</div><div class="lbl">Vitesse (km/h)</div></div>
-    <div class="card"><div class="val" id="gforce">0.00</div><div class="lbl">Force G</div></div>
-    <div class="card"><div class="val" id="lean">0°</div><div class="lbl">Angle Virage</div></div>
+    <div class="card">
+      <div class="val main-chrono" id="chrono">00.00</div>
+      <div class="label">Chrono (s)</div>
+    </div>
+    <div class="card">
+      <div class="val" id="speed">0.0</div>
+      <div class="label">Vitesse (km/h)</div>
+    </div>
+    <div class="card">
+      <div class="val" id="gforce">0.00</div>
+      <div class="label">Force G</div>
+    </div>
+    <div class="card">
+      <div class="val" id="angle">0°</div>
+      <div class="label">Angle Virage</div>
+    </div>
   </div>
 
-  <!-- Carte Satellite -->
+  <div class="controls">
+    <button class="btn-blue" id="btn-calibrate">Calibrer 0° (Vélo droit)</button>
+    <button class="btn-orange" id="btn-gate">Grille Départ (Bip)</button>
+    <button class="btn-gray" id="btn-add-cell">+ Cellule ici</button>
+    <button class="btn-gray" id="btn-clear-cells">Effacer Cellules</button>
+    <button class="btn-orange full-width" id="btn-arm">Armer Départ Auto (Mouvement)</button>
+    <button class="btn-green" id="btn-start">Démarrer Manuellement</button>
+    <button class="btn-red" id="btn-stop" disabled>Arrêter & Sauvegarder</button>
+  </div>
+
   <div id="map"></div>
+  <div class="hint">Touchez la carte pour placer vos secteurs. La dernière cellule placée devient l'ARRIVÉE (arrêt auto).</div>
 
-  <!-- Réglages & Capteurs -->
-  <div class="btn-row">
-    <button class="btn-sec" id="btnCalib">Calibrer 0° (Vélo droit)</button>
-    <button class="btn-sec" id="btnGate">Grille Départ (Bip)</button>
-  </div>
-  <div class="btn-row">
-    <button class="btn-sec" id="btnSector">+ Cellule ici</button>
-    <button class="btn-sec" id="btnClear">Effacer Cellules</button>
+  <div class="section-box">
+    <div class="section-header">
+      <span class="section-title">Temps intermédiaires (Run actuel)</span>
+    </div>
+    <div id="splits-list"><div style="color:#64748b; font-size:0.8rem;">En attente du départ...</div></div>
   </div>
 
-  <button class="btn-start" id="btnStart">Démarrer le Run</button>
-  <button class="btn-stop" id="btnStop">Arrêter & Sauvegarder</button>
-
-  <!-- Graphique Vitesse / Force G -->
-  <div class="chart-box">
-    <canvas id="telemetryChart" height="150"></canvas>
+  <div class="section-box">
+    <div class="section-header">
+      <span class="section-title">Historique sauvegardé</span>
+      <div>
+        <button class="btn-blue" id="btn-export" style="padding: 5px 10px; font-size: 0.75rem;">Exporter CSV</button>
+        <button class="btn-red" id="btn-clear-history" style="padding: 5px 10px; font-size: 0.75rem;">Vider</button>
+      </div>
+    </div>
+    <div id="history-list"></div>
   </div>
 
-  <!-- Détails du run en cours -->
-  <div class="section-title">Temps intermédiaires (Run actuel)</div>
-  <div class="list-box" id="logs">
-    <div style="color:#64748b">Touchez la carte pour placer vos secteurs (Bas de butte, Virages, Arrivée).</div>
-  </div>
+  <script src="https://unpkg.com"></script>
+  <script>
+    let map, userMarker;
+    let currentPos = null;
+    let cells = [];
+    let isRunning = false;
+    let isArmed = false;
+    let startTime = 0;
+    let timerInterval = null;
+    let splits = [];
+    let angleOffset = 0;
+    let rawGamma = 0;
+    let maxSpeed = 0;
+    let maxG = 0;
+    let maxAngle = 0;
 
-  <!-- Historique sauvegardé sur l'iPhone -->
-  <div class="section-title" style="display:flex; justify-content:space-between;">
-    <span>Historique sauvegardé</span>
-    <span id="clearHistory" style="color:#ef4444; cursor:pointer;">Vider</span>
-  </div>
-  <div class="list-box" id="historyList"></div>
+    // Initialisation Carte
+    map = L.map('map').setView([46.603354, 1.888334], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OSM'
+    }).addTo(map);
 
-<script>
-  let running = false, startTime = 0, timerInt = null, watchId = null, wakeLock = null;
-  let currentG = 0, maxG = 0, maxSpeed = 0, maxLean = 0;
-  let rawGamma = 0, leanOffset = 0;
-  let sectors = [], sessionData = [], chart = null;
+    map.on('click', (e) => {
+      addCell(e.latlng.lat, e.latlng.lng);
+    });
 
-  const el = id => document.getElementById(id);
+    function addCell(lat, lng) {
+      const index = cells.length + 1;
+      const circle = L.circle([lat, lng], {
+        color: '#f59e0b',
+        fillColor: '#f59e0b',
+        fillOpacity: 0.3,
+        radius: 6
+      }).addTo(map);
 
-  // 1. Carte Satellite
-  const map = L.map('map').setView([46.04, 4.07], 17);
-  L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
-    attribution: 'Esri'
-  }).addTo(map);
-  const trackLine = L.polyline([], { color: '#f97316', weight: 4 }).addTo(map);
-
-  // Chargement des cellules sauvegardées sur l'iPhone
-  const savedSectors = JSON.parse(localStorage.getItem('bmx_sectors') || '[]');
-  savedSectors.forEach(s => addSector(s.lat, s.lon, false));
-
-  navigator.geolocation.getCurrentPosition(pos => {
-    if (savedSectors.length === 0) map.setView([pos.coords.latitude, pos.coords.longitude], 18);
-    else map.setView([savedSectors[0].lat, savedSectors[0].lon], 18);
-    el('gpsStatus').innerText = `GPS ±${Math.round(pos.coords.accuracy)}m`;
-    el('gpsStatus').style.color = '#22c55e';
-  }, null, { enableHighAccuracy: true });
-
-  map.on('click', e => addSector(e.latlng.lat, e.latlng.lng, true));
-
-  el('btnSector').onclick = () => {
-    navigator.geolocation.getCurrentPosition(pos => {
-      addSector(pos.coords.latitude, pos.coords.longitude, true);
-    }, () => alert("Signal GPS en cours d'acquisition"), { enableHighAccuracy: true });
-  };
-
-  function addSector(lat, lon, save) {
-    const id = sectors.length + 1;
-    const marker = L.circleMarker([lat, lon], { radius: 8, color: '#22c55e', fillOpacity: 0.85 }).addTo(map);
-    marker.bindTooltip(`S${id}`, { permanent: true, direction: 'top' });
-    sectors.push({ id, lat, lon, marker, passed: false });
-    if (save) {
-      localStorage.setItem('bmx_sectors', JSON.stringify(sectors.map(s => ({ lat: s.lat, lon: s.lon }))));
-      addLog(`Secteur ${id} sauvegardé`, `${lat.toFixed(5)}, ${lon.toFixed(5)}`);
+      cells.push({ id: index, lat, lng, circle, passed: false });
+      updateCellLabels();
     }
-  }
 
-  el('btnClear').onclick = () => {
-    sectors.forEach(s => map.removeLayer(s.marker));
-    sectors = [];
-    localStorage.removeItem('bmx_sectors');
-    trackLine.setLatLngs([]);
-    addLog("Piste réinitialisée", "Cellules effacées");
-  };
-
-  // 2. Autorisation capteurs iOS & Calibrage 0°
-  async function initSensors() {
-    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-      await DeviceMotionEvent.requestPermission();
+    function updateCellLabels() {
+      cells.forEach((c, idx) => {
+        const isLast = (idx === cells.length - 1);
+        c.circle.setStyle({
+          color: isLast ? '#ef4444' : '#38bdf8',
+          fillColor: isLast ? '#ef4444' : '#38bdf8'
+        });
+        c.circle.bindTooltip(isLast ? `ARRIVÉE (C${c.id})` : `Secteur ${c.id}`, { permanent: true, direction: 'top' }).openTooltip();
+      });
     }
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      await DeviceOrientationEvent.requestPermission();
+
+    document.getElementById('btn-add-cell').addEventListener('click', () => {
+      if (currentPos) addCell(currentPos.lat, currentPos.lng);
+      else alert("Signal GPS en attente.");
+    });
+
+    document.getElementById('btn-clear-cells').addEventListener('click', () => {
+      cells.forEach(c => map.removeLayer(c.circle));
+      cells = [];
+    });
+
+    // GPS
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition((pos) => {
+        const { latitude, longitude, speed, accuracy } = pos.coords;
+        currentPos = { lat: latitude, lng: longitude };
+        
+        const gpsEl = document.getElementById('gps-status');
+        gpsEl.textContent = `GPS OK (±${Math.round(accuracy)}m)`;
+        gpsEl.classList.add('gps-ok');
+
+        const kmh = speed ? (speed * 3.6) : 0;
+        document.getElementById('speed').textContent = kmh.toFixed(1);
+        if (isRunning && kmh > maxSpeed) maxSpeed = kmh;
+
+        if (!userMarker) {
+          userMarker = L.circleMarker([latitude, longitude], { radius: 7, color: '#22c55e', fillColor: '#22c55e', fillOpacity: 1 }).addTo(map);
+          map.setView([latitude, longitude], 18);
+        } else {
+          userMarker.setLatLng([latitude, longitude]);
+        }
+
+        if (isRunning) checkCells(latitude, longitude);
+      }, (err) => {
+        document.getElementById('gps-status').textContent = "Erreur GPS";
+      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
     }
-    window.addEventListener('devicemotion', handleMotion);
-    window.addEventListener('deviceorientation', handleOrientation);
-  }
 
-  el('btnCalib').onclick = async () => {
-    await initSensors();
-    setTimeout(() => {
-      leanOffset = rawGamma;
-      el('lean').innerText = "0°";
-      addLog("Calibrage OK", `Décalage support : ${Math.round(leanOffset)}°`);
-    }, 200);
-  };
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const p1 = lat1 * Math.PI / 180;
+      const p2 = lat2 * Math.PI / 180;
+      const dp = (lat2 - lat1) * Math.PI / 180;
+      const dl = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
 
-  // 3. Grille de départ sonore
-  el('btnGate').onclick = async () => {
-    await initSensors();
-    addLog("Grille", "Prêt au départ...");
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const beep = (freq, dur, delay) => {
-      const osc = ctx.createOscillator();
-      osc.frequency.value = freq;
-      osc.connect(ctx.destination);
-      osc.start(ctx.currentTime + delay);
-      osc.stop(ctx.currentTime + delay + dur);
-    };
-    beep(440, 0.15, 0.5); beep(440, 0.15, 1.0); beep(440, 0.15, 1.5); beep(880, 0.4, 2.0);
-    setTimeout(() => { if (!running) el('btnStart').click(); }, 2000);
-  };
-
-  // 4. Démarrage du Run
-  el('btnStart').onclick = async () => {
-    await initSensors();
-    try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
-
-    running = true;
-    startTime = performance.now();
-    maxG = 0; maxSpeed = 0; maxLean = 0; sessionData = [];
-    trackLine.setLatLngs([]);
-    sectors.forEach(s => s.passed = false);
-
-    el('btnStart').style.display = 'none';
-    el('btnStop').style.display = 'block';
-    el('logs').innerHTML = '';
-    addLog("Départ", "Enregistrement actif");
-
-    timerInt = setInterval(() => {
-      el('chrono').innerText = ((performance.now() - startTime) / 1000).toFixed(2);
-    }, 30);
-
-    watchId = navigator.geolocation.watchPosition(pos => {
-      const t = ((performance.now() - startTime) / 1000).toFixed(2);
-      const spdKmh = (pos.coords.speed || 0) * 3.6;
-      if (spdKmh > maxSpeed) maxSpeed = spdKmh;
-      el('speed').innerText = spdKmh.toFixed(1);
-
-      const latlng = [pos.coords.latitude, pos.coords.longitude];
-      trackLine.addLatLng(latlng);
-      map.panTo(latlng);
-
-      sessionData.push({ t, speed: spdKmh.toFixed(1), g: currentG.toFixed(2) });
-
-      sectors.forEach(s => {
-        if (!s.passed && getDistance(pos.coords.latitude, pos.coords.longitude, s.lat, s.lon) < 4.5) {
-          s.passed = true;
-          addLog(`Secteur ${s.id}`, `${t} s (${spdKmh.toFixed(1)} km/h)`);
+    function checkCells(lat, lng) {
+      cells.forEach((cell, idx) => {
+        if (!cell.passed) {
+          const dist = getDistance(lat, lng, cell.lat, cell.lng);
+          if (dist <= 6) {
+            cell.passed = true;
+            const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+            const isLast = (idx === cells.length - 1);
+            splits.push({ name: isLast ? "ARRIVÉE" : `Secteur ${cell.id}`, time: elapsed });
+            renderSplits();
+            if (isLast) stopRun();
+          }
         }
       });
-    }, null, { enableHighAccuracy: true, maximumAge: 0 });
-  };
+    }
 
-  function handleMotion(e) {
-    if (!running || !e.acceleration) return;
+    // Capteurs iPhone (Force G & Angle)
+    function initSensors() {
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission().then(res => {
+          if (res === 'granted') window.addEventListener('devicemotion', handleMotion);
+        }).catch(console.error);
+      } else {
+        window.addEventListener('devicemotion', handleMotion);
+      }
+
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().then(res => {
+          if (res === 'granted') window.addEventListener('deviceorientation', handleOrientation);
+        }).catch(console.error);
+      } else {
 Utilisez le code avec précaution.
-currentG = Math.hypot(e.acceleration.x || 0, e.acceleration.y || 0, e.acceleration.z || 0) / 9.81;
-el('gforce').innerText = currentG.toFixed(2);
-if (currentG > maxG) maxG = currentG;
+window.addEventListener('deviceorientation', handleOrientation);
 }
-function handleOrientation(e) {
-if (e.gamma === null) return;
-rawGamma = e.gamma;
-if (!running) return;
-const correctedLean = Math.round(Math.abs(rawGamma - leanOffset));
-el('lean').innerText = correctedLean + "°";
-if (correctedLean > maxLean) maxLean = correctedLean;
-}
-// 5. Arrêt & Sauvegarde dans la mémoire iPhone
-el('btnStop').onclick = () => {
-running = false;
-clearInterval(timerInt);
-navigator.geolocation.clearWatch(watchId);
-if (wakeLock) { wakeLock.release(); wakeLock = null; }
-el('btnStop').style.display = 'none';
-el('btnStart').style.display = 'block';
-const finalTime = el('chrono').innerText;
-const runSummary = {
-date: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-time: finalTime + "s",
-vmax: maxSpeed.toFixed(1) + " km/h",
-maxG: maxG.toFixed(2) + "G",
-lean: maxLean + "°"
-};
-const history = JSON.parse(localStorage.getItem('bmx_history') || '[]');
-history.unshift(runSummary);
-localStorage.setItem('bmx_history', JSON.stringify(history));
-renderHistory();
-addLog("Arrivée", Temps: ${runSummary.time} | Vmax: ${runSummary.vmax});
-renderChart();
-};
-function renderHistory() {
-const history = JSON.parse(localStorage.getItem('bmx_history') || '[]');
-el('historyList').innerHTML = history.length ? history.map(h => <div class="item"> <strong>${h.date} — ${h.time}</strong> <span>${h.vmax} | ${h.maxG} | ${h.lean}</span> </div>).join('') : 'Aucun run enregistré.';
-}
-el('clearHistory').onclick = () => {
-localStorage.removeItem('bmx_history');
-renderHistory();
-};
-function getDistance(lat1, lon1, lat2, lon2) {
-const R = 6371e3, p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
-const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
-const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
-return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-function renderChart() {
-const ctx = el('telemetryChart').getContext('2d');
-if (chart) chart.destroy();
-chart = new Chart(ctx, {
-type: 'line',
-data: {
-labels: sessionData.map(d => d.t + 's'),
-datasets: [
-{ label: 'Vitesse (km/h)', data: sessionData.map(d => d.speed), borderColor: '#f97316', tension: 0.3, yAxisID: 'y' },
-{ label: 'Force G', data: sessionData.map(d => d.g), borderColor: '#38bdf8', tension: 0.3, yAxisID: 'y1' }
-]
-},
-options: {
-responsive: true,
-scales: {
-y: { type: 'linear', position: 'left', ticks: { color: '#f97316' } },
-y1: { type: 'linear', position: 'right', ticks: { color: '#38bdf8' }, grid: { drawOnChartArea: false } }
-}
-}
-});
-}
-function addLog(title, detail) {
-const div = document.createElement('div');
-div.className = 'item';
-div.innerHTML = <strong>${title}</strong><span>${detail}</span>;
-el('logs').prepend(div);
-}
-renderHistory();
-
-
-
-*(Note : J'ai également corrigé une petite coquille à la ligne 110 sur le centrage automatique de la carte lors du rechargement d'une piste sauvegardée.)*
-
-<FollowUp>
-Souhaitez-vous que je vous aide à **ajouter un déclenchement automatique au mouvement** ou à **exporter les données en fichier Excel/CSV** après un entraînement ?
-</FollowUp>
-Les réponses de l'IA peuvent contenir des erreurs. En savoir plus
-
-oui
-
-Voici la version mise à jour incluant les deux fonctionnalités :
-1. Déclenchement automatique au mouvement : Vous appuyez sur Armer Départ Auto une fois en grille. Dès que vous donnez le premier coup de pédale (accélération > 0,35 G), le chronomètre démarre instantanément tout seul.
-2. Exportation CSV / Excel : Un bouton Exporter CSV permet de télécharger l'historique complet de vos tours (Date, Chrono, Vitesse Max, Force G Max, Angle Virage) pour l'ouvrir dans Excel ou Apple Numbers.
-Remplacez simplement le contenu de votre fichier index.html par ce code complet :
-html
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>BMX iPhone Pro</title>
-  <link rel="stylesheet" href="https://unpkg.com" />
-  <script src="https://unpkg.com"></script>
-  <script src="https://jsdelivr.net"></script>
-  <style>
-    :root { --bg: #090d16; --card: #151c2c; --accent: #f97316; --green: #22c55e; --text: #f8fafc; }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 14px; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    h1 { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin: 0; text-transform: uppercase; }
-    .badge { font-size: 0.72rem; background: #1e293b; padding: 4px 8px; border-radius: 6px; color: #94a3b8; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .card { background: var(--card); padding: 12px; border-radius: 14px; text-align: center; border: 1px solid #1e293b; }
-    .val { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .lbl { font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-    #map { height: 210px; border-radius: 14px; margin-bottom: 12px; border: 1px solid #1e293b; }
-    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-    button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 0.92rem; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
-    .btn-start { background: var(--accent); color: white; font-size: 1.05rem; }
-    .btn-auto { background: #2563eb; color: white; font-size: 0.95rem; }
-    .btn-armed { background: #eab308; color: #090d16; font-size: 0.95rem; animation: pulse 1.2s infinite; }
-    .btn-stop { background: #ef4444; color: white; font-size: 1.05rem; display: none; }
-    .btn-sec { background: #1e293b; color: #e2e8f0; font-size: 0.82rem; padding: 11px; margin-bottom: 0; }
-    .chart-box { background: var(--card); padding: 10px; border-radius: 14px; margin-bottom: 12px; }
-    .section-title { font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; margin: 12px 0 6px 0; font-weight: 700; }
-    .list-box { background: var(--card); padding: 10px; border-radius: 14px; font-size: 0.82rem; max-height: 160px; overflow-y: auto; }
-    .item { border-bottom: 1px solid #1e293b; padding: 7px 0; display: flex; justify-content: space-between; }
-    .item:last-child { border-bottom: none; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-  </style>
-</head>
-<body>
-
-  <div class="header">
-    <h1>BMX iPhone Pro</h1>
-    <span class="badge" id="gpsStatus">GPS...</span>
-  </div>
-
-  <!-- Compteurs Temps Réel -->
-  <div class="grid">
-    <div class="card"><div class="val" id="chrono">00.00</div><div class="lbl">Chrono (s)</div></div>
-    <div class="card"><div class="val" id="speed">0.0</div><div class="lbl">Vitesse (km/h)</div></div>
-    <div class="card"><div class="val" id="gforce">0.00</div><div class="lbl">Force G</div></div>
-    <div class="card"><div class="val" id="lean">0°</div><div class="lbl">Angle Virage</div></div>
-  </div>
-
-  <!-- Carte Satellite -->
-  <div id="map"></div>
-
-  <!-- Réglages & Capteurs -->
-  <div class="btn-row">
-    <button class="btn-sec" id="btnCalib">Calibrer 0° (Vélo droit)</button>
-    <button class="btn-sec" id="btnGate">Grille Départ (Bip)</button>
-  </div>
-  <div class="btn-row">
-    <button class="btn-sec" id="btnSector">+ Cellule ici</button>
-    <button class="btn-sec" id="btnClear">Effacer Cellules</button>
-  </div>
-
-  <!-- Boutons de lancement -->
-  <button class="btn-auto" id="btnAuto">Armer Départ Auto (Mouvement)</button>
-  <button class="btn-start" id="btnStart">Démarrer Manuellement</button>
-  <button class="btn-stop" id="btnStop">Arrêter & Sauvegarder</button>
-
-  <!-- Graphique Vitesse / Force G -->
-  <div class="chart-box">
-    <canvas id="telemetryChart" height="150"></canvas>
-  </div>
-
-  <!-- Détails du run en cours -->
-  <div class="section-title">Temps intermédiaires (Run actuel)</div>
-  <div class="list-box" id="logs">
-    <div style="color:#64748b">Touchez la carte pour placer vos secteurs (Bas de butte, Virages, Arrivée).</div>
-  </div>
-
-  <!-- Historique sauvegardé + Export CSV -->
-  <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-    <span>Historique sauvegardé</span>
-    <div>
-      <span id="exportCsv" style="color:#22c55e; cursor:pointer; margin-right:12px;">Exporter CSV</span>
-      <span id="clearHistory" style="color:#ef4444; cursor:pointer;">Vider</span>
-    </div>
-  </div>
-  <div class="list-box" id="historyList"></div>
-
-<script>
-  let running = false, armed = false, startTime = 0, timerInt = null, watchId = null, wakeLock = null;
-  let currentG = 0, maxG = 0, maxSpeed = 0, maxLean = 0;
-  let rawGamma = 0, leanOffset = 0;
-  let sectors = [], sessionData = [], chart = null;
-
-  const el = id => document.getElementById(id);
-
-  // 1. Carte Satellite
-  const map = L.map('map').setView([46.04, 4.07], 17);
-  L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
-    attribution: 'Esri'
-  }).addTo(map);
-  const trackLine = L.polyline([], { color: '#f97316', weight: 4 }).addTo(map);
-
-  // Chargement des cellules sauvegardées
-  const savedSectors = JSON.parse(localStorage.getItem('bmx_sectors') || '[]');
-  savedSectors.forEach(s => addSector(s.lat, s.lon, false));
-
-  navigator.geolocation.getCurrentPosition(pos => {
-    if (savedSectors.length === 0) map.setView([pos.coords.latitude, pos.coords.longitude], 18);
-    else map.setView([savedSectors[0].lat, savedSectors[0].lon], 18);
-    el('gpsStatus').innerText = `GPS ±${Math.round(pos.coords.accuracy)}m`;
-    el('gpsStatus').style.color = '#22c55e';
-  }, null, { enableHighAccuracy: true });
-
-  map.on('click', e => addSector(e.latlng.lat, e.latlng.lng, true));
-
-  el('btnSector').onclick = () => {
-    navigator.geolocation.getCurrentPosition(pos => {
-      addSector(pos.coords.latitude, pos.coords.longitude, true);
-    }, () => alert("Signal GPS en cours d'acquisition"), { enableHighAccuracy: true });
-  };
-
-  function addSector(lat, lon, save) {
-    const id = sectors.length + 1;
-    const marker = L.circleMarker([lat, lon], { radius: 8, color: '#22c55e', fillOpacity: 0.85 }).addTo(map);
-    marker.bindTooltip(`S${id}`, { permanent: true, direction: 'top' });
-    sectors.push({ id, lat, lon, marker, passed: false });
-    if (save) {
-      localStorage.setItem('bmx_sectors', JSON.stringify(sectors.map(s => ({ lat: s.lat, lon: s.lon }))));
-      addLog(`Secteur ${id} sauvegardé`, `${lat.toFixed(5)}, ${lon.toFixed(5)}`);
-    }
-  }
-
-  el('btnClear').onclick = () => {
-    sectors.forEach(s => map.removeLayer(s.marker));
-    sectors = [];
-    localStorage.removeItem('bmx_sectors');
-    trackLine.setLatLngs([]);
-    addLog("Piste réinitialisée", "Cellules effacées");
-  };
-
-  // 2. Autorisation capteurs iOS & Calibrage 0°
-  async function initSensors() {
-    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-      await DeviceMotionEvent.requestPermission();
-    }
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      await DeviceOrientationEvent.requestPermission();
-    }
-    window.addEventListener('devicemotion', handleMotion);
-    window.addEventListener('deviceorientation', handleOrientation);
-  }
-
-  el('btnCalib').onclick = async () => {
-    await initSensors();
-    setTimeout(() => {
-      leanOffset = rawGamma;
-      el('lean').innerText = "0°";
-      addLog("Calibrage OK", `Décalage support : ${Math.round(leanOffset)}°`);
-    }, 200);
-  };
-
-  // 3. Armement Départ Automatique (Accéléromètre)
-  el('btnAuto').onclick = async () => {
-    await initSensors();
-    if (armed) {
-      armed = false;
-      el('btnAuto').className = 'btn-auto';
-      el('btnAuto').innerText = 'Armer Départ Auto (Mouvement)';
-      addLog("Départ Auto", "Désactivé");
-      return;
-    }
-    armed = true;
-    el('btnAuto').className = 'btn-armed';
-    el('btnAuto').innerText = 'PRÊT : En attente du premier coup de pédale...';
-    addLog("Départ Auto Armé", "Le chrono partira au mouvement (> 0.35 G)");
-  };
-
-  // 4. Grille de départ sonore
-  el('btnGate').onclick = async () => {
-    await initSensors();
-    addLog("Grille", "Prêt au départ...");
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const beep = (freq, dur, delay) => {
-      const osc = ctx.createOscillator();
-      osc.frequency.value = freq;
-      osc.connect(ctx.destination);
-      osc.start(ctx.currentTime + delay);
-      osc.stop(ctx.currentTime + delay + dur);
-    };
-    beep(440, 0.15, 0.5); beep(440, 0.15, 1.0); beep(440, 0.15, 1.5); beep(880, 0.4, 2.0);
-    setTimeout(() => { if (!running) startSession(); }, 2000);
-  };
-
-  // 5. Démarrage du Run
-  el('btnStart').onclick = () => startSession();
-
-  async function startSession() {
-    await initSensors();
-    try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
-
-    armed = false;
-    running = true;
-    startTime = performance.now();
-    maxG = 0; maxSpeed = 0; maxLean = 0; sessionData = [];
-    trackLine.setLatLngs([]);
-    sectors.forEach(s => s.passed = false);
-
-    el('btnAuto').style.display = 'none';
-    el('btnAuto').className = 'btn-auto';
-Utilisez le code avec précaution.
-el('btnAuto').innerText = 'Armer Départ Auto (Mouvement)';
-el('btnStart').style.display = 'none';
-el('btnStop').style.display = 'block';
-el('logs').innerHTML = '';
-addLog("Départ", "Enregistrement actif");
-timerInt = setInterval(() => {
-el('chrono').innerText = ((performance.now() - startTime) / 1000).toFixed(2);
-}, 30);
-watchId = navigator.geolocation.watchPosition(pos => {
-const t = ((performance.now() - startTime) / 1000).toFixed(2);
-const spdKmh = (pos.coords.speed || 0) * 3.6;
-if (spdKmh > maxSpeed) maxSpeed = spdKmh;
-el('speed').innerText = spdKmh.toFixed(1);
-const latlng = [pos.coords.latitude, pos.coords.longitude];
-trackLine.addLatLng(latlng);
-map.panTo(latlng);
-sessionData.push({ t, speed: spdKmh.toFixed(1), g: currentG.toFixed(2) });
-sectors.forEach(s => {
-if (!s.passed && getDistance(pos.coords.latitude, pos.coords.longitude, s.lat, s.lon) < 4.5) {
-s.passed = true;
-addLog(Secteur ${s.id}, ${t} s (${spdKmh.toFixed(1)} km/h));
-}
-});
-}, null, { enableHighAccuracy: true, maximumAge: 0 });
 }
 function handleMotion(e) {
-if (!e.acceleration) return;
-currentG = Math.hypot(e.acceleration.x || 0, e.acceleration.y || 0, e.acceleration.z || 0) / 9.81;
-// Déclenchement automatique au mouvement si armé
-if (armed && !running && currentG > 0.35) {
-startSession();
-return;
+const acc = e.accelerationIncludingGravity;
+if (!acc) return;
+const totalAcc = Math.sqrt(acc.xacc.x + acc.yacc.y + acc.z*acc.z);
+const g = totalAcc / 9.81;
+document.getElementById('gforce').textContent = g.toFixed(2);
+if (isRunning && g > maxG) maxG = g;
+// Détection mouvement pour départ auto
+const linAcc = e.acceleration;
+if (isArmed && linAcc) {
+const moveForce = Math.sqrt(linAcc.xlinAcc.x + linAcc.ylinAcc.y + linAcc.z*linAcc.z);
+if (moveForce > 2.2) {
+isArmed = false;
+startRun();
 }
-if (!running) return;
-el('gforce').innerText = currentG.toFixed(2);
-if (currentG > maxG) maxG = currentG;
+}
 }
 function handleOrientation(e) {
 if (e.gamma === null) return;
 rawGamma = e.gamma;
-if (!running) return;
-const correctedLean = Math.round(Math.abs(rawGamma - leanOffset));
-el('lean').innerText = correctedLean + "°";
-if (correctedLean > maxLean) maxLean = correctedLean;
+const calibrated = Math.round(rawGamma - angleOffset);
+document.getElementById('angle').textContent = ${calibrated}°;
+if (isRunning && Math.abs(calibrated) > maxAngle) maxAngle = Math.abs(calibrated);
 }
-// 6. Arrêt & Sauvegarde
-el('btnStop').onclick = () => {
-running = false;
-clearInterval(timerInt);
-navigator.geolocation.clearWatch(watchId);
-if (wakeLock) { wakeLock.release(); wakeLock = null; }
-el('btnStop').style.display = 'none';
-el('btnAuto').style.display = 'block';
-el('btnStart').style.display = 'block';
-const finalTime = el('chrono').innerText;
-const runSummary = {
-date: new Date().toLocaleDateString('fr-FR') + ' ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-time: finalTime,
-vmax: maxSpeed.toFixed(1),
-maxG: maxG.toFixed(2),
-lean: maxLean
-};
-const history = JSON.parse(localStorage.getItem('bmx_history') || '[]');
-history.unshift(runSummary);
-localStorage.setItem('bmx_history', JSON.stringify(history));
-renderHistory();
-addLog("Arrivée", Temps: ${runSummary.time}s | Vmax: ${runSummary.vmax} km/h);
-renderChart();
-};
-function renderHistory() {
-const history = JSON.parse(localStorage.getItem('bmx_history') || '[]');
-el('historyList').innerHTML = history.length ? history.map(h => <div class="item"> <strong>${h.date} — ${h.time}s</strong> <span>${h.vmax} km/h | ${h.maxG}G | ${h.lean}°</span> </div>).join('') : 'Aucun run enregistré.';
-}
-// 7. Exportation CSV pour Excel / Numbers
-el('exportCsv').onclick = () => {
-const history = JSON.parse(localStorage.getItem('bmx_history') || '[]');
-if (!history.length) return alert("Aucun run à exporter.");
-let csv = "Date;Chrono (s);Vitesse Max (km/h);Force G Max;Angle Virage Max (deg)\n";
-history.forEach(h => {
-csv += ${h.date};${h.time};${h.vmax};${h.maxG};${h.lean}\n;
+document.getElementById('btn-calibrate').addEventListener('click', () => {
+initSensors();
+angleOffset = rawGamma;
+document.getElementById('angle').textContent = "0°";
 });
-const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url;
-a.download = bmx-telemetry-${new Date().toISOString().slice(0,10)}.csv;
-a.click();
+// Grille de départ sonore (Web Audio API)
+document.getElementById('btn-gate').addEventListener('click', () => {
+initSensors();
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+const playTone = (freq, delay, duration) => {
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+osc.frequency.value = freq;
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start(ctx.currentTime + delay);
+osc.stop(ctx.currentTime + delay + duration);
 };
-el('clearHistory').onclick = () => {
-localStorage.removeItem('bmx_history');
-renderHistory();
-};
-function getDistance(lat1, lon1, lat2, lon2) {
-const R = 6371e3, p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
-const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
-const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
-return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-function renderChart() {
-const ctx = el('telemetryChart').getContext('2d');
-if (chart) chart.destroy();
-chart = new Chart(ctx, {
-type: 'line',
-data: {
-labels: sessionData.map(d => d.t + 's'),
-datasets: [
-{ label: 'Vitesse (km/h)', data: sessionData.map(d => d.speed), borderColor: '#f97316', tension: 0.3, yAxisID: 'y' },
-{ label: 'Force G', data: sessionData.map(d => d.g), borderColor: '#38bdf8', tension: 0.3, yAxisID: 'y1' }
-]
-},
-options: {
-responsive: true,
-scales: {
-y: { type: 'linear', position: 'left', ticks: { color: '#f97316' } },
-y1: { type: 'linear', position: 'right', ticks: { color: '#38bdf8' }, grid: { drawOnChartArea: false } }
-}
-}
+// Cadence officielle UCI BMX (4 bips)
+playTone(632, 0.5, 0.15);
+playTone(632, 1.1, 0.15);
+playTone(632, 1.7, 0.15);
+playTone(950, 2.3, 0.4);
+setTimeout(() => { if (!isRunning) startRun(); }, 2300);
 });
-}
-function addLog(title, detail) {
-const div = document.createElement('div');
-div.className = 'item';
-div.innerHTML = <strong>${title}</strong><span>${detail}</span>;
-el('logs').prepend(div);
-}
-renderHistory();
-
-
-
-### Mode d'emploi des nouveautés
-* **Départ Automatique :** Une fois installé en grille (après avoir calibré le `0°`), touchez le bouton bleu **Armer Départ Auto**. Il passe au jaune clignotant : gardez l'équilibre sur les pédales et dès que vous envoyez le départ, le chronomètre démarre à la milliseconde près. *(Si le seuil de `0.35 G` est trop sensible sur la grille, vous pouvez le monter à `0.50` à la ligne 222).*
-* **Export CSV :** Touchez **Exporter CSV** en vert au-dessus de votre historique pour télécharger un fichier directement lisible dans l'application **Numbers** de l'iPhone ou dans **Excel**.
-
-<FollowUp>
-Si vous souhaitez aller plus loin, je peux ajouter **l'arrêt automatique du chrono** dès que vous franchissez la dernière cellule verte (la ligne d'arrivée), afin de ne plus avoir à toucher l'écran ni au départ ni à l'arrivée. Voulez-vous cette option ?
-</FollowUp>
-Les réponses de l'IA peuvent contenir des erreurs. En savoir plus
-
-oui
-
-Voici la version complète incluant l'arrêt automatique à l'arrivée.
-Désormais, le système distingue vos secteurs intermédiaires (S1, S2... en vert) de votre ligne d'arrivée (la dernière cellule placée, qui s'affiche automatiquement en rouge avec la mention ARRIVÉE). Dès que vous la franchissez, le chronomètre s'arrête tout seul, sauvegarde le run et trace immédiatement le graphique.
-Remplacez le contenu de votre fichier index.html par ce code complet :
-html
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>BMX iPhone Pro</title>
-  <link rel="stylesheet" href="https://unpkg.com" />
-  <script src="https://unpkg.com"></script>
-  <script src="https://jsdelivr.net"></script>
-  <style>
-    :root { --bg: #090d16; --card: #151c2c; --accent: #f97316; --green: #22c55e; --text: #f8fafc; }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 14px; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    h1 { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin: 0; text-transform: uppercase; }
-    .badge { font-size: 0.72rem; background: #1e293b; padding: 4px 8px; border-radius: 6px; color: #94a3b8; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .card { background: var(--card); padding: 12px; border-radius: 14px; text-align: center; border: 1px solid #1e293b; }
-    .val { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .lbl { font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-    #map { height: 210px; border-radius: 14px; margin-bottom: 12px; border: 1px solid #1e293b; }
-    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-    button { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 0.92rem; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
-    .btn-start { background: var(--accent); color: white; font-size: 1.05rem; }
-    .btn-auto { background: #2563eb; color: white; font-size: 0.95rem; }
-    .btn-armed { background: #eab308; color: #090d16; font-size: 0.95rem; animation: pulse 1.2s infinite; }
-    .btn-stop { background: #ef4444; color: white; font-size: 1.05rem; display: none; }
-    .btn-sec { background: #1e293b; color: #e2e8f0; font-size: 0.82rem; padding: 11px; margin-bottom: 0; }
-    .chart-box { background: var(--card); padding: 10px; border-radius: 14px; margin-bottom: 12px; }
-    .section-title { font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; margin: 12px 0 6px 0; font-weight: 700; }
-    .list-box { background: var(--card); padding: 10px; border-radius: 14px; font-size: 0.82rem; max-height: 160px; overflow-y: auto; }
-    .item { border-bottom: 1px solid #1e293b; padding: 7px 0; display: flex; justify-content: space-between; }
-    .item:last-child { border-bottom: none; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-  </style>
-</head>
-<body>
-
-  <div class="header">
-    <h1>BMX iPhone Pro</h1>
-    <span class="badge" id="gpsStatus">GPS...</span>
-  </div>
-
-  <!-- Compteurs Temps Réel -->
-  <div class="grid">
-    <div class="card"><div class="val" id="chrono">00.00</div><div class="lbl">Chrono (s)</div></div>
-    <div class="card"><div class="val" id="speed">0.0</div><div class="lbl">Vitesse (km/h)</div></div>
-    <div class="card"><div class="val" id="gforce">0.00</div><div class="lbl">Force G</div></div>
-    <div class="card"><div class="val" id="lean">0°</div><div class="lbl">Angle Virage</div></div>
-  </div>
-
-  <!-- Carte Satellite -->
-  <div id="map"></div>
-
-  <!-- Réglages & Capteurs -->
-  <div class="btn-row">
-    <button class="btn-sec" id="btnCalib">Calibrer 0° (Vélo droit)</button>
-    <button class="btn-sec" id="btnGate">Grille Départ (Bip)</button>
-  </div>
-  <div class="btn-row">
-    <button class="btn-sec" id="btnSector">+ Cellule ici</button>
-    <button class="btn-sec" id="btnClear">Effacer Cellules</button>
-  </div>
-
-  <!-- Boutons de lancement -->
-  <button class="btn-auto" id="btnAuto">Armer Départ Auto (Mouvement)</button>
-  <button class="btn-start" id="btnStart">Démarrer Manuellement</button>
-  <button class="btn-stop" id="btnStop">Arrêter & Sauvegarder</button>
-
-  <!-- Graphique Vitesse / Force G -->
-  <div class="chart-box">
-    <canvas id="telemetryChart" height="150"></canvas>
-  </div>
-
-  <!-- Détails du run en cours -->
-  <div class="section-title">Temps intermédiaires (Run actuel)</div>
-  <div class="list-box" id="logs">
-    <div style="color:#64748b">Touchez la carte pour placer vos secteurs. La dernière cellule placée devient l'ARRIVÉE (arrêt auto).</div>
-  </div>
-
-  <!-- Historique sauvegardé + Export CSV -->
-  <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-    <span>Historique sauvegardé</span>
-    <div>
-      <span id="exportCsv" style="color:#22c55e; cursor:pointer; margin-right:12px;">Exporter CSV</span>
-      <span id="clearHistory" style="color:#ef4444; cursor:pointer;">Vider</span>
-    </div>
-  </div>
-  <div class="list-box" id="historyList"></div>
-
-<script>
-  let running = false, armed = false, startTime = 0, timerInt = null, watchId = null, wakeLock = null;
-  let currentG = 0, maxG = 0, maxSpeed = 0, maxLean = 0;
-  let rawGamma = 0, leanOffset = 0;
-  let sectors = [], sessionData = [], chart = null;
-
-  const el = id => document.getElementById(id);
-
-  // 1. Carte Satellite
-  const map = L.map('map').setView([46.04, 4.07], 17);
-  L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
-    attribution: 'Esri'
-  }).addTo(map);
-  const trackLine = L.polyline([], { color: '#f97316', weight: 4 }).addTo(map);
-
-  // Chargement des cellules sauvegardées
-  const savedSectors = JSON.parse(localStorage.getItem('bmx_sectors') || '[]');
-  savedSectors.forEach(s => addSector(s.lat, s.lon, false));
-
-  navigator.geolocation.getCurrentPosition(pos => {
-    if (savedSectors.length === 0) map.setView([pos.coords.latitude, pos.coords.longitude], 18);
-    else map.setView([savedSectors[0].lat, savedSectors[0].lon], 18);
-    el('gpsStatus').innerText = `GPS ±${Math.round(pos.coords.accuracy)}m`;
-    el('gpsStatus').style.color = '#22c55e';
-  }, null, { enableHighAccuracy: true });
-
-  map.on('click', e => addSector(e.latlng.lat, e.latlng.lng, true));
-
-  el('btnSector').onclick = () => {
-    navigator.geolocation.getCurrentPosition(pos => {
-      addSector(pos.coords.latitude, pos.coords.longitude, true);
-    }, () => alert("Signal GPS en cours d'acquisition"), { enableHighAccuracy: true });
-  };
-
-  function addSector(lat, lon, save) {
-    sectors.push({ lat, lon, marker: null, passed: false });
-    redrawSectors();
-    if (save) {
-      localStorage.setItem('bmx_sectors', JSON.stringify(sectors.map(s => ({ lat: s.lat, lon: s.lon }))));
-      const label = sectors.length === 1 ? "Arrivée placée (arrêt auto)" : `Secteur ${sectors.length - 1} + Arrivée mise à jour`;
-      addLog(label, `${lat.toFixed(5)}, ${lon.toFixed(5)}`);
-    }
-  }
-
-  // Met à jour l'affichage : les premiers points en vert (S1, S2...), le dernier en rouge (ARRIVÉE)
-  function redrawSectors() {
-    sectors.forEach((s, index) => {
-      if (s.marker) map.removeLayer(s.marker);
-      const isFinish = (index === sectors.length - 1);
-      s.id = index + 1;
-      s.isFinish = isFinish;
-      s.marker = L.circleMarker([s.lat, s.lon], {
-        radius: isFinish ? 10 : 8,
-        color: isFinish ? '#ef4444' : '#22c55e',
-        fillOpacity: 0.9
-      }).addTo(map);
-      s.marker.bindTooltip(isFinish ? 'ARRIVÉE' : `S${s.id}`, { permanent: true, direction: 'top' });
-    });
-  }
-
-  el('btnClear').onclick = () => {
-    sectors.forEach(s => { if (s.marker) map.removeLayer(s.marker); });
-    sectors = [];
-    localStorage.removeItem('bmx_sectors');
-    trackLine.setLatLngs([]);
-    addLog("Piste réinitialisée", "Cellules effacées");
-  };
-
-  // 2. Autorisation capteurs iOS & Calibrage 0°
-  async function initSensors() {
-    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-      await DeviceMotionEvent.requestPermission();
-    }
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      await DeviceOrientationEvent.requestPermission();
-    }
-    window.addEventListener('devicemotion', handleMotion);
-    window.addEventListener('deviceorientation', handleOrientation);
-  }
-
-  el('btnCalib').onclick = async () => {
-    await initSensors();
-    setTimeout(() => {
-      leanOffset = rawGamma;
-      el('lean').innerText = "0°";
-      addLog("Calibrage OK", `Décalage support : ${Math.round(leanOffset)}°`);
-    }, 200);
-  };
-
-  // 3. Armement Départ Automatique (Accéléromètre)
-  el('btnAuto').onclick = async () => {
-    await initSensors();
-    if (armed) {
-      armed = false;
-      el('btnAuto').className = 'btn-auto';
-      el('btnAuto').innerText = 'Armer Départ Auto (Mouvement)';
-      addLog("Départ Auto", "Désactivé");
-      return;
-    }
-    armed = true;
-    el('btnAuto').className = 'btn-armed';
-    el('btnAuto').innerText = 'PRÊT : En attente du premier coup de pédale...';
-    addLog("Départ Auto Armé", "Le chrono partira au mouvement (> 0.35 G)");
-  };
-
-  // 4. Grille de départ sonore
-  el('btnGate').onclick = async () => {
-    await initSensors();
-    addLog("Grille", "Prêt au départ...");
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const beep = (freq, dur, delay) => {
-      const osc = ctx.createOscillator();
-      osc.frequency.value = freq;
-      osc.connect(ctx.destination);
-      osc.start(ctx.currentTime + delay);
-      osc.stop(ctx.currentTime + delay + dur);
-    };
-    beep(440, 0.15, 0.5); beep(440, 0.15, 1.0); beep(440, 0.15, 1.5); beep(880, 0.4, 2.0);
-Utilisez le code avec précaution.
-setTimeout(() => { if (!running) startSession(); }, 2000);
-};
-// 5. Démarrage du Run
-el('btnStart').onclick = () => startSession();
-async function startSession() {
-await initSensors();
-try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
-armed = false;
-running = true;
+// Gestion Chrono
+document.getElementById('btn-arm').addEventListener('click', () => {
+initSensors();
+isArmed = true;
+document.getElementById('btn-arm').textContent = "PRÊT - BOUGEZ POUR PARTIR...";
+document.getElementById('btn-arm').style.background = "#ef4444";
+});
+document.getElementById('btn-start').addEventListener('click', () => {
+initSensors();
+startRun();
+});
+document.getElementById('btn-stop').addEventListener('click', stopRun);
+function startRun() {
+if (isRunning) return;
+isRunning = true;
+isArmed = false;
 startTime = performance.now();
-maxG = 0; maxSpeed = 0; maxLean = 0; sessionData = [];
-trackLine.setLatLngs([]);
-sectors.forEach(s => s.passed = false);
-el('btnAuto').style.display = 'none';
-el('btnAuto').className = 'btn-auto';
-el('btnAuto').innerText = 'Armer Départ Auto (Mouvement)';
-el('btnStart').style.display = 'none';
-el('btnStop').style.display = 'block';
-el('logs').innerHTML = '';
-addLog("Départ", "Enregistrement actif");
-timerInt = setInterval(() => {
-el('chrono').innerText = ((performance.now() - startTime) / 1000).toFixed(2);
+splits = [];
+maxSpeed = 0;
+maxG = 0;
+maxAngle = 0;
+cells.forEach(c => c.passed = false);
+renderSplits();
+document.getElementById('btn-arm').textContent = "Armer Départ Auto (Mouvement)";
+document.getElementById('btn-arm').style.background = "";
+document.getElementById('btn-start').disabled = true;
+document.getElementById('btn-stop').disabled = false;
+timerInterval = setInterval(() => {
+const now = (performance.now() - startTime) / 1000;
+document.getElementById('chrono').textContent = now.toFixed(2);
 }, 30);
-watchId = navigator.geolocation.watchPosition(pos => {
-const elapsedSec = (performance.now() - startTime) / 1000;
-const t = elapsedSec.toFixed(2);
-const spdKmh = (pos.coords.speed || 0) * 3.6;
-if (spdKmh > maxSpeed) maxSpeed = spdKmh;
-el('speed').innerText = spdKmh.toFixed(1);
-const latlng = [pos.coords.latitude, pos.coords.longitude];
-trackLine.addLatLng(latlng);
-map.panTo(latlng);
-sessionData.push({ t, speed: spdKmh.toFixed(1), g: currentG.toFixed(2) });
-sectors.forEach(s => {
-if (!s.passed && getDistance(pos.coords.latitude, pos.coords.longitude, s.lat, s.lon) < 5) {
-// Sécurité : ignore l'arrivée dans les 4 premières secondes du départ
-if (s.isFinish && elapsedSec < 4) return;
-s.passed = true;
-if (s.isFinish) {
-el('chrono').innerText = t;
-stopSession(true);
-} else {
-addLog(Secteur ${s.id}, ${t} s (${spdKmh.toFixed(1)} km/h));
 }
+function stopRun() {
+if (!isRunning) return;
+isRunning = false;
+clearInterval(timerInterval);
+const finalTime = document.getElementById('chrono').textContent;
+document.getElementById('btn-start').disabled = false;
+document.getElementById('btn-stop').disabled = true;
+saveRun(finalTime);
 }
-});
-}, null, { enableHighAccuracy: true, maximumAge: 0 });
-}
-function handleMotion(e) {
-if (!e.acceleration) return;
-currentG = Math.hypot(e.acceleration.x || 0, e.acceleration.y || 0, e.acceleration.z || 0) / 9.81;
-if (armed && !running && currentG > 0.35) {
-startSession();
+function renderSplits() {
+const container = document.getElementById('splits-list');
+if (splits.length === 0) {
+container.innerHTML = 'En cours...';
 return;
 }
-if (!running) return;
-el('gforce').innerText = currentG.toFixed(2);
-if (currentG > maxG) maxG = currentG;
+container.innerHTML = splits.map(s => <div class="list-item"> <span>${s.name}</span> <span class="badge">${s.time} s</span> </div>).join('');
 }
-function handleOrientation(e) {
-if (e.gamma === null) return;
-rawGamma = e.gamma;
-if (!running) return;
-const correctedLean = Math.round(Math.abs(rawGamma - leanOffset));
-el('lean').innerText = correctedLean + "°";
-if (correctedLean > maxLean) maxLean = correctedLean;
-}
-// 6. Arrêt (Manuel ou Automatique) & Sauvegarde
-el('btnStop').onclick = () => stopSession(false);
-function stopSession(isAuto) {
-if (!running) return;
-running = false;
-clearInterval(timerInt);
-navigator.geolocation.clearWatch(watchId);
-if (wakeLock) { wakeLock.release(); wakeLock = null; }
-el('btnStop').style.display = 'none';
-el('btnAuto').style.display = 'block';
-el('btnStart').style.display = 'block';
-const finalTime = el('chrono').innerText;
-const runSummary = {
-date: new Date().toLocaleDateString('fr-FR') + ' ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-time: finalTime,
-vmax: maxSpeed.toFixed(1),
+// Sauvegarde & Historique
+function saveRun(time) {
+const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
+const run = {
+date: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+time: time,
+maxSpeed: maxSpeed.toFixed(1),
 maxG: maxG.toFixed(2),
-lean: maxLean
+maxAngle: maxAngle,
+splits: splits.map(s => ${s.name}:${s.time}s).join(' | ')
 };
-const history = JSON.parse(localStorage.getItem('bmx_history') || '[]');
-history.unshift(runSummary);
-localStorage.setItem('bmx_history', JSON.stringify(history));
+history.unshift(run);
+localStorage.setItem('bmx_runs', JSON.stringify(history));
 renderHistory();
-addLog(isAuto ? "ARRIVÉE AUTO" : "Arrivée", Temps: ${runSummary.time}s | Vmax: ${runSummary.vmax} km/h);
-renderChart();
 }
 function renderHistory() {
-const history = JSON.parse(localStorage.getItem('bmx_history') || '[]');
-el('historyList').innerHTML = history.length ? history.map(h => <div class="item"> <strong>${h.date} — ${h.time}s</strong> <span>${h.vmax} km/h | ${h.maxG}G | ${h.lean}°</span> </div>).join('') : 'Aucun run enregistré.';
+const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
+const container = document.getElementById('history-list');
+if (history.length === 0) {
+container.innerHTML = 'Aucun run enregistré.';
+return;
 }
-// 7. Exportation CSV pour Excel / Numbers
-el('exportCsv').onclick = () => {
-const history = JSON.parse(localStorage.getItem('bmx_history') || '[]');
-if (!history.length) return alert("Aucun run à exporter.");
-let csv = "Date;Chrono (s);Vitesse Max (km/h);Force G Max;Angle Virage Max (deg)\n";
-history.forEach(h => {
-csv += ${h.date};${h.time};${h.vmax};${h.maxG};${h.lean}\n;
+container.innerHTML = history.map(r => <div class="list-item" style="flex-direction:column; gap:4px;"> <div style="display:flex; justify-content:space-between; font-weight:700;"> <span>${r.date} — ${r.time} s</span> <span style="color:var(--accent);">${r.maxSpeed} km/h</span> </div> <div style="font-size:0.75rem; color:#94a3b8;"> Max G: ${r.maxG}G | Angle Max: ${r.maxAngle}° ${r.splits ?
+${r.splits}: ''} </div> </div>).join('');
+}
+document.getElementById('btn-clear-history').addEventListener('click', () => {
+localStorage.removeItem('bmx_runs');
+renderHistory();
+});
+document.getElementById('btn-export').addEventListener('click', () => {
+const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
+if (history.length === 0) return alert("Aucune donnée à exporter.");
+let csv = "Heure;Temps (s);Vitesse Max (km/h);Force G Max;Angle Max;Intermediaires\n";
+history.forEach(r => {
+csv += ${r.date};${r.time};${r.maxSpeed};${r.maxG};${r.maxAngle};"${r.splits}"\n;
 });
 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
+const a = document.createElement("a");
 a.href = url;
-a.download = bmx-telemetry-${new Date().toISOString().slice(0,10)}.csv;
+a.download = "bmx_chrono_runs.csv";
 a.click();
-};
-el('clearHistory').onclick = () => {
-localStorage.removeItem('bmx_history');
-renderHistory();
-};
-function getDistance(lat1, lon1, lat2, lon2) {
-const R = 6371e3, p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
-const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
-const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
-return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-function renderChart() {
-const ctx = el('telemetryChart').getContext('2d');
-if (chart) chart.destroy();
-chart = new Chart(ctx, {
-type: 'line',
-data: {
-labels: sessionData.map(d => d.t + 's'),
-datasets: [
-{ label: 'Vitesse (km/h)', data: sessionData.map(d => d.speed), borderColor: '#f97316', tension: 0.3, yAxisID: 'y' },
-{ label: 'Force G', data: sessionData.map(d => d.g), borderColor: '#38bdf8', tension: 0.3, yAxisID: 'y1' }
-]
-},
-options: {
-responsive: true,
-scales: {
-y: { type: 'linear', position: 'left', ticks: { color: '#f97316' } },
-y1: { type: 'linear', position: 'right', ticks: { color: '#38bdf8' }, grid: { drawOnChartArea: false } }
-}
-}
 });
-}
-function addLog(title, detail) {
-const div = document.createElement('div');
-div.className = 'item';
-div.innerHTML = <strong>${title}</strong><span>${detail}</span>;
-el('logs').prepend(div);
-}
 renderHistory();
