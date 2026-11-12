@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>BMX Pro</title>
-  <link rel="stylesheet" href="https://unpkg.com" />
+  <link rel="stylesheet" href="https://cloudflare.com" />
   <style>
     :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --text: #f8fafc; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
@@ -28,14 +28,14 @@
     .btn-red { background: var(--red); }
     .btn-gray { background: #475569; }
     .full-width { grid-column: span 2; }
-    #map { height: 240px; width: 100%; border-radius: 14px; background: #1e293b; margin-bottom: 8px; }
+    #map { height: 260px; width: 100%; border-radius: 14px; background: #1e293b; margin-bottom: 8px; z-index: 1; }
     .section-box { background: var(--card); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
     .list-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; font-size: 0.85rem; }
   </style>
 </head>
 <body>
   <header>
-    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● V4</span></h1>
+    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● V5</span></h1>
     <div id="gps-status">GPS en attente</div>
   </header>
   <div class="grid">
@@ -65,18 +65,26 @@
     </div>
     <div id="history-list"></div>
   </div>
-  <script src="https://unpkg.com"></script>
+  <script src="https://cloudflare.com"></script>
 
     <script>
     let map, userMarker, currentPos = null, cells = [], isRunning = false, isArmed = false;
     let startTime = 0, timerInterval = null, splits = [], angleOffset = 0, rawGamma = 0;
     let maxSpeed = 0, maxG = 0, maxAngle = 0;
 
-    if (typeof L !== 'undefined') {
-      map = L.map('map').setView([46.6033, 1.8883], 5);
-      L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', { maxZoom: 20 }).addTo(map);
-      map.on('click', e => addCell(e.latlng.lat, e.latlng.lng));
-    }
+    window.onload = function() {
+      if (typeof L !== 'undefined') {
+        map = L.map('map').setView([46.08, 4.06], 13);
+        L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
+          maxZoom: 20,
+          attribution: 'Esri Satellite'
+        }).addTo(map);
+        setTimeout(() => { map.invalidateSize(); }, 300);
+        map.on('click', e => addCell(e.latlng.lat, e.latlng.lng));
+      } else {
+        document.getElementById('map').innerHTML = "<div style='padding:20px; text-align:center; color:#ef4444;'>Carte bloquée par le réseau.</div>";
+      }
+    };
 
     function addCell(lat, lng) {
       if (!map) return;
@@ -99,7 +107,7 @@
         if (map) {
           if (!userMarker) {
             userMarker = L.circleMarker([currentPos.lat, currentPos.lng], { radius: 7, color: '#22c55e', fillOpacity: 1 }).addTo(map);
-            map.setView([currentPos.lat, currentPos.lng], 19);
+            map.setView([currentPos.lat, currentPos.lng], 18);
           } else { userMarker.setLatLng([currentPos.lat, currentPos.lng]); }
         }
         if (isRunning) checkCells(currentPos.lat, currentPos.lng);
