@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>BMX iPhone Pro</title>
-  <link rel="stylesheet" href="https://unpkg.com" />
+  <link rel="stylesheet" href="https://cloudflare.com" />
   <style>
     :root {
       --bg: #0f172a;
@@ -17,7 +17,7 @@
       --orange: #f59e0b;
       --text: #f8fafc;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 40px; }
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     h1 { font-size: 1.2rem; font-weight: 800; letter-spacing: 0.5px; }
@@ -31,9 +31,9 @@
     .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
 
     .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-    button { border: none; border-radius: 12px; padding: 12px 8px; font-size: 0.85rem; font-weight: 700; color: #fff; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
-    button:active { transform: scale(0.97); }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button { border: none; border-radius: 12px; padding: 14px 8px; font-size: 0.85rem; font-weight: 700; color: #fff; cursor: pointer; touch-action: manipulation; }
+    button:active { opacity: 0.7; }
+    button:disabled { opacity: 0.35; cursor: not-allowed; }
     
     .btn-blue { background: #0284c7; }
     .btn-orange { background: var(--orange); color: #000; }
@@ -42,7 +42,9 @@
     .btn-gray { background: #475569; }
     .full-width { grid-column: span 2; }
 
-    #map { height: 240px; width: 100%; border-radius: 14px; margin-bottom: 8px; z-index: 1; }
+    .map-wrapper { position: relative; margin-bottom: 8px; }
+    #map { height: 240px; width: 100%; border-radius: 14px; background: #1e293b; z-index: 1; }
+    #btn-recenter { position: absolute; bottom: 10px; right: 10px; z-index: 1000; background: rgba(15, 23, 42, 0.85); color: #fff; padding: 8px 12px; font-size: 0.75rem; border: 1px solid #475569; }
     .hint { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-bottom: 12px; }
 
     .section-box { background: var(--card); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
@@ -57,7 +59,7 @@
 
   <header>
     <h1>BMX iPhone Pro</h1>
-    <div id="gps-status">GPS...</div>
+    <div id="gps-status">Recherche GPS...</div>
   </header>
 
   <div class="grid">
@@ -80,17 +82,20 @@
   </div>
 
   <div class="controls">
-    <button class="btn-blue" id="btn-calibrate">Calibrer 0° (Vélo droit)</button>
-    <button class="btn-orange" id="btn-gate">Grille Départ (Bip)</button>
-    <button class="btn-gray" id="btn-add-cell">+ Cellule ici</button>
-    <button class="btn-gray" id="btn-clear-cells">Effacer Cellules</button>
-    <button class="btn-orange full-width" id="btn-arm">Armer Départ Auto (Mouvement)</button>
-    <button class="btn-green" id="btn-start">Démarrer Manuellement</button>
-    <button class="btn-red" id="btn-stop" disabled>Arrêter & Sauvegarder</button>
+    <button type="button" class="btn-blue" id="btn-calibrate">Calibrer 0° (Vélo droit)</button>
+    <button type="button" class="btn-orange" id="btn-gate">Grille Départ (Bip)</button>
+    <button type="button" class="btn-gray" id="btn-add-cell">+ Cellule ici</button>
+    <button type="button" class="btn-gray" id="btn-clear-cells">Effacer Cellules</button>
+    <button type="button" class="btn-orange full-width" id="btn-arm">Armer Départ Auto (Mouvement)</button>
+    <button type="button" class="btn-green" id="btn-start">Démarrer Manuellement</button>
+    <button type="button" class="btn-red" id="btn-stop" disabled>Arrêter & Sauvegarder</button>
   </div>
 
-  <div id="map"></div>
-  <div class="hint">Touchez la carte pour placer vos secteurs. La dernière cellule placée devient l'ARRIVÉE (arrêt auto).</div>
+  <div class="map-wrapper">
+    <div id="map"></div>
+    <button type="button" id="btn-recenter">Recentrer GPS</button>
+  </div>
+  <div class="hint">Touchez la carte pour placer vos secteurs. La dernière cellule est l'ARRIVÉE.</div>
 
   <div class="section-box">
     <div class="section-header">
@@ -103,16 +108,17 @@
     <div class="section-header">
       <span class="section-title">Historique sauvegardé</span>
       <div>
-        <button class="btn-blue" id="btn-export" style="padding: 5px 10px; font-size: 0.75rem;">Exporter CSV</button>
-        <button class="btn-red" id="btn-clear-history" style="padding: 5px 10px; font-size: 0.75rem;">Vider</button>
+        <button type="button" class="btn-blue" id="btn-export" style="padding: 5px 10px; font-size: 0.75rem;">Exporter CSV</button>
+        <button type="button" class="btn-red" id="btn-clear-history" style="padding: 5px 10px; font-size: 0.75rem;">Vider</button>
       </div>
     </div>
     <div id="history-list"></div>
   </div>
 
-  <script src="https://unpkg.com"></script>
+  <script src="https://cloudflare.com"></script>
   <script>
-    let map, userMarker;
+    let map = null;
+    let userMarker = null;
     let currentPos = null;
     let cells = [];
     let isRunning = false;
@@ -125,134 +131,162 @@
     let maxSpeed = 0;
     let maxG = 0;
     let maxAngle = 0;
+    let sensorsInitialized = false;
 
-    // Initialisation Carte
-    map = L.map('map').setView([46.603354, 1.888334], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OSM'
-    }).addTo(map);
+    // Initialisation sécurisée de la carte
+    try {
+      if (typeof L !== 'undefined') {
+        map = L.map('map').setView([46.603354, 1.888334], 5);
+        const satellite = L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
+          maxZoom: 20,
+          attribution: 'Esri'
+        }).addTo(map);
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: 'OSM'
+        });
+        L.control.layers({ "Satellite": satellite, "Plan": osm }).addTo(map);
+        setTimeout(() => { if (map) map.invalidateSize(); }, 500);
 
-    map.on('click', (e) => {
-      addCell(e.latlng.lat, e.latlng.lng);
+        map.on('click', function(e) {
+          addCell(e.latlng.lat, e.latlng.lng);
+        });
+      }
+    } catch (e) {
+      console.log("Erreur carte ignorée:", e);
+    }
+
+    document.getElementById('btn-recenter').addEventListener('click', function() {
+      if (currentPos && map) {
+        map.setView([currentPos.lat, currentPos.lng], 19);
+      } else {
+        alert("Position GPS pas encore captée. Sortez à l'extérieur.");
+      }
     });
 
     function addCell(lat, lng) {
+      if (!map) return;
       const index = cells.length + 1;
       const circle = L.circle([lat, lng], {
         color: '#f59e0b',
         fillColor: '#f59e0b',
-        fillOpacity: 0.3,
+        fillOpacity: 0.35,
         radius: 6
       }).addTo(map);
 
-      cells.push({ id: index, lat, lng, circle, passed: false });
+      cells.push({ id: index, lat: lat, lng: lng, circle: circle, passed: false });
       updateCellLabels();
     }
 
     function updateCellLabels() {
-      cells.forEach((c, idx) => {
+      cells.forEach(function(c, idx) {
         const isLast = (idx === cells.length - 1);
         c.circle.setStyle({
           color: isLast ? '#ef4444' : '#38bdf8',
           fillColor: isLast ? '#ef4444' : '#38bdf8'
         });
-        c.circle.bindTooltip(isLast ? `ARRIVÉE (C${c.id})` : `Secteur ${c.id}`, { permanent: true, direction: 'top' }).openTooltip();
+        c.circle.bindTooltip(isLast ? ("ARRIVÉE (C" + c.id + ")") : ("Secteur " + c.id), { permanent: true, direction: 'top' }).openTooltip();
       });
     }
 
-    document.getElementById('btn-add-cell').addEventListener('click', () => {
+    document.getElementById('btn-add-cell').addEventListener('click', function() {
       if (currentPos) addCell(currentPos.lat, currentPos.lng);
       else alert("Signal GPS en attente.");
     });
 
-    document.getElementById('btn-clear-cells').addEventListener('click', () => {
-      cells.forEach(c => map.removeLayer(c.circle));
+    document.getElementById('btn-clear-cells').addEventListener('click', function() {
+      if (map) cells.forEach(function(c) { map.removeLayer(c.circle); });
       cells = [];
     });
 
     // GPS
     if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition((pos) => {
-        const { latitude, longitude, speed, accuracy } = pos.coords;
+      navigator.geolocation.watchPosition(function(pos) {
+        const latitude = pos.coords.latitude;
+        const longitude = pos.coords.longitude;
+        const speed = pos.coords.speed;
+        const accuracy = pos.coords.accuracy;
         currentPos = { lat: latitude, lng: longitude };
         
         const gpsEl = document.getElementById('gps-status');
-        gpsEl.textContent = `GPS OK (±${Math.round(accuracy)}m)`;
+        gpsEl.textContent = "GPS OK (±" + Math.round(accuracy) + "m)";
         gpsEl.classList.add('gps-ok');
 
         const kmh = speed ? (speed * 3.6) : 0;
         document.getElementById('speed').textContent = kmh.toFixed(1);
         if (isRunning && kmh > maxSpeed) maxSpeed = kmh;
 
-        if (!userMarker) {
-          userMarker = L.circleMarker([latitude, longitude], { radius: 7, color: '#22c55e', fillColor: '#22c55e', fillOpacity: 1 }).addTo(map);
-          map.setView([latitude, longitude], 18);
-        } else {
-          userMarker.setLatLng([latitude, longitude]);
+        if (map) {
+          if (!userMarker) {
+            userMarker = L.circleMarker([latitude, longitude], { radius: 7, color: '#22c55e', fillColor: '#22c55e', fillOpacity: 1 }).addTo(map);
+            map.setView([latitude, longitude], 19);
+          } else {
+            userMarker.setLatLng([latitude, longitude]);
+          }
         }
 
         if (isRunning) checkCells(latitude, longitude);
-      }, (err) => {
-        document.getElementById('gps-status').textContent = "Erreur GPS";
-      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+      }, function(err) {
+        document.getElementById('gps-status').textContent = "GPS en attente";
+      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
     }
 
     function getDistance(lat1, lon1, lat2, lon2) {
       const R = 6371e3;
       const p1 = lat1 * Math.PI / 180;
-      const p2 = lat2 * Math.PI / 180;
-      const dp = (lat2 - lat1) * Math.PI / 180;
-      const dl = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
-
-    function checkCells(lat, lng) {
-      cells.forEach((cell, idx) => {
-        if (!cell.passed) {
-          const dist = getDistance(lat, lng, cell.lat, cell.lng);
-          if (dist <= 6) {
-            cell.passed = true;
-            const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-            const isLast = (idx === cells.length - 1);
-            splits.push({ name: isLast ? "ARRIVÉE" : `Secteur ${cell.id}`, time: elapsed });
-            renderSplits();
-            if (isLast) stopRun();
-          }
-        }
-      });
-    }
-
-    // Capteurs iPhone (Force G & Angle)
-    function initSensors() {
-      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission().then(res => {
-          if (res === 'granted') window.addEventListener('devicemotion', handleMotion);
-        }).catch(console.error);
-      } else {
-        window.addEventListener('devicemotion', handleMotion);
-      }
-
-      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(res => {
-          if (res === 'granted') window.addEventListener('deviceorientation', handleOrientation);
-        }).catch(console.error);
-      } else {
 Utilisez le code avec précaution.
+const p2 = lat2 * Math.PI / 180;
+const dp = (lat2 - lat1) * Math.PI / 180;
+const dl = (lon2 - lon1) * Math.PI / 180;
+const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function checkCells(lat, lng) {
+cells.forEach(function(cell, idx) {
+if (!cell.passed) {
+const dist = getDistance(lat, lng, cell.lat, cell.lng);
+if (dist <= 6) {
+cell.passed = true;
+const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+const isLast = (idx === cells.length - 1);
+splits.push({ name: isLast ? "ARRIVÉE" : ("Secteur " + cell.id), time: elapsed });
+renderSplits();
+if (isLast) stopRun();
+}
+}
+});
+}
+// Capteurs iPhone isolés pour ne jamais bloquer le chrono
+function initSensors() {
+if (sensorsInitialized) return;
+sensorsInitialized = true;
+try {
+if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+DeviceMotionEvent.requestPermission().then(function(res) {
+if (res === 'granted') window.addEventListener('devicemotion', handleMotion);
+}).catch(function() {});
+} else {
+window.addEventListener('devicemotion', handleMotion);
+}
+if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+DeviceOrientationEvent.requestPermission().then(function(res) {
+if (res === 'granted') window.addEventListener('deviceorientation', handleOrientation);
+}).catch(function() {});
+} else {
 window.addEventListener('deviceorientation', handleOrientation);
 }
+} catch (e) {}
 }
 function handleMotion(e) {
 const acc = e.accelerationIncludingGravity;
-if (!acc) return;
+if (acc && acc.x !== null) {
 const totalAcc = Math.sqrt(acc.xacc.x + acc.yacc.y + acc.z*acc.z);
 const g = totalAcc / 9.81;
 document.getElementById('gforce').textContent = g.toFixed(2);
 if (isRunning && g > maxG) maxG = g;
-// Détection mouvement pour départ auto
+}
 const linAcc = e.acceleration;
-if (isArmed && linAcc) {
+if (isArmed && linAcc && linAcc.x !== null) {
 const moveForce = Math.sqrt(linAcc.xlinAcc.x + linAcc.ylinAcc.y + linAcc.z*linAcc.z);
 if (moveForce > 2.2) {
 isArmed = false;
@@ -264,19 +298,21 @@ function handleOrientation(e) {
 if (e.gamma === null) return;
 rawGamma = e.gamma;
 const calibrated = Math.round(rawGamma - angleOffset);
-document.getElementById('angle').textContent = ${calibrated}°;
+document.getElementById('angle').textContent = calibrated + "°";
 if (isRunning && Math.abs(calibrated) > maxAngle) maxAngle = Math.abs(calibrated);
 }
-document.getElementById('btn-calibrate').addEventListener('click', () => {
+document.getElementById('btn-calibrate').addEventListener('click', function() {
 initSensors();
 angleOffset = rawGamma;
 document.getElementById('angle').textContent = "0°";
 });
-// Grille de départ sonore (Web Audio API)
-document.getElementById('btn-gate').addEventListener('click', () => {
+// Grille de départ sonore
+document.getElementById('btn-gate').addEventListener('click', function() {
 initSensors();
-const ctx = new (window.AudioContext || window.webkitAudioContext)();
-const playTone = (freq, delay, duration) => {
+try {
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const ctx = new AudioCtx();
+const playTone = function(freq, delay, duration) {
 const osc = ctx.createOscillator();
 const gain = ctx.createGain();
 osc.frequency.value = freq;
@@ -285,49 +321,54 @@ gain.connect(ctx.destination);
 osc.start(ctx.currentTime + delay);
 osc.stop(ctx.currentTime + delay + duration);
 };
-// Cadence officielle UCI BMX (4 bips)
 playTone(632, 0.5, 0.15);
 playTone(632, 1.1, 0.15);
 playTone(632, 1.7, 0.15);
 playTone(950, 2.3, 0.4);
-setTimeout(() => { if (!isRunning) startRun(); }, 2300);
+} catch (e) {}
+setTimeout(function() { if (!isRunning) startRun(); }, 2300);
 });
-// Gestion Chrono
-document.getElementById('btn-arm').addEventListener('click', () => {
+// Gestion Chrono (Démarrage immédiat garanti)
+document.getElementById('btn-arm').addEventListener('click', function() {
 initSensors();
 isArmed = true;
-document.getElementById('btn-arm').textContent = "PRÊT - BOUGEZ POUR PARTIR...";
-document.getElementById('btn-arm').style.background = "#ef4444";
+const btn = document.getElementById('btn-arm');
+btn.textContent = "PRÊT - BOUGEZ POUR PARTIR...";
+btn.style.background = "#ef4444";
 });
-document.getElementById('btn-start').addEventListener('click', () => {
-initSensors();
+document.getElementById('btn-start').addEventListener('click', function() {
 startRun();
+initSensors();
 });
-document.getElementById('btn-stop').addEventListener('click', stopRun);
+document.getElementById('btn-stop').addEventListener('click', function() {
+stopRun();
+});
 function startRun() {
 if (isRunning) return;
 isRunning = true;
 isArmed = false;
-startTime = performance.now();
+startTime = Date.now();
 splits = [];
 maxSpeed = 0;
 maxG = 0;
 maxAngle = 0;
-cells.forEach(c => c.passed = false);
+cells.forEach(function(c) { c.passed = false; });
 renderSplits();
-document.getElementById('btn-arm').textContent = "Armer Départ Auto (Mouvement)";
-document.getElementById('btn-arm').style.background = "";
+const btnArm = document.getElementById('btn-arm');
+btnArm.textContent = "Armer Départ Auto (Mouvement)";
+btnArm.style.background = "";
 document.getElementById('btn-start').disabled = true;
 document.getElementById('btn-stop').disabled = false;
-timerInterval = setInterval(() => {
-const now = (performance.now() - startTime) / 1000;
+if (timerInterval) clearInterval(timerInterval);
+timerInterval = setInterval(function() {
+const now = (Date.now() - startTime) / 1000;
 document.getElementById('chrono').textContent = now.toFixed(2);
 }, 30);
 }
 function stopRun() {
 if (!isRunning) return;
 isRunning = false;
-clearInterval(timerInterval);
+if (timerInterval) clearInterval(timerInterval);
 const finalTime = document.getElementById('chrono').textContent;
 document.getElementById('btn-start').disabled = false;
 document.getElementById('btn-stop').disabled = true;
@@ -339,10 +380,13 @@ if (splits.length === 0) {
 container.innerHTML = 'En cours...';
 return;
 }
-container.innerHTML = splits.map(s => <div class="list-item"> <span>${s.name}</span> <span class="badge">${s.time} s</span> </div>).join('');
+container.innerHTML = splits.map(function(s) {
+return '' + s.name + '' + s.time + ' s';
+}).join('');
 }
 // Sauvegarde & Historique
 function saveRun(time) {
+try {
 const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
 const run = {
 date: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -350,32 +394,47 @@ time: time,
 maxSpeed: maxSpeed.toFixed(1),
 maxG: maxG.toFixed(2),
 maxAngle: maxAngle,
-splits: splits.map(s => ${s.name}:${s.time}s).join(' | ')
+splits: splits.map(function(s) { return s.name + ':' + s.time + 's'; }).join(' | ')
 };
 history.unshift(run);
 localStorage.setItem('bmx_runs', JSON.stringify(history));
 renderHistory();
+} catch (e) {}
 }
 function renderHistory() {
-const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
 const container = document.getElementById('history-list');
+try {
+const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
 if (history.length === 0) {
 container.innerHTML = 'Aucun run enregistré.';
 return;
 }
-container.innerHTML = history.map(r => <div class="list-item" style="flex-direction:column; gap:4px;"> <div style="display:flex; justify-content:space-between; font-weight:700;"> <span>${r.date} — ${r.time} s</span> <span style="color:var(--accent);">${r.maxSpeed} km/h</span> </div> <div style="font-size:0.75rem; color:#94a3b8;"> Max G: ${r.maxG}G | Angle Max: ${r.maxAngle}° ${r.splits ?
-${r.splits}: ''} </div> </div>).join('');
+container.innerHTML = history.map(function(r) {
+return '' +
+'' +
+'' + r.date + ' — ' + r.time + ' s' +
+'' + r.maxSpeed + ' km/h' +
+'' +
+'' +
+'Max G: ' + r.maxG + 'G | Angle Max: ' + r.maxAngle + '° ' + (r.splits ? ('
+' + r.splits) : '') +
+'' +
+'';
+}).join('');
+} catch (e) {
+container.innerHTML = 'Historique prêt.';
 }
-document.getElementById('btn-clear-history').addEventListener('click', () => {
+}
+document.getElementById('btn-clear-history').addEventListener('click', function() {
 localStorage.removeItem('bmx_runs');
 renderHistory();
 });
-document.getElementById('btn-export').addEventListener('click', () => {
+document.getElementById('btn-export').addEventListener('click', function() {
 const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
 if (history.length === 0) return alert("Aucune donnée à exporter.");
 let csv = "Heure;Temps (s);Vitesse Max (km/h);Force G Max;Angle Max;Intermediaires\n";
-history.forEach(r => {
-csv += ${r.date};${r.time};${r.maxSpeed};${r.maxG};${r.maxAngle};"${r.splits}"\n;
+history.forEach(function(r) {
+csv += r.date + ";" + r.time + ";" + r.maxSpeed + ";" + r.maxG + ";" + r.maxAngle + ';"' + r.splits + '"\n';
 });
 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 const url = URL.createObjectURL(blob);
