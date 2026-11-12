@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>BMX Pro</title>
-  <link rel="stylesheet" href="https://cloudflare.com" />
   <style>
     :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --text: #f8fafc; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
@@ -28,14 +27,15 @@
     .btn-red { background: var(--red); }
     .btn-gray { background: #475569; }
     .full-width { grid-column: span 2; }
-    #map { height: 260px; width: 100%; border-radius: 14px; background: #1e293b; margin-bottom: 8px; z-index: 1; }
+    canvas { width: 100%; height: 260px; background: #090d16; border: 1px solid #334155; border-radius: 14px; display: block; margin-bottom: 6px; }
+    .hint { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-bottom: 12px; }
     .section-box { background: var(--card); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
     .list-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; font-size: 0.85rem; }
   </style>
 </head>
 <body>
   <header>
-    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● V5</span></h1>
+    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● RADAR</span></h1>
     <div id="gps-status">GPS en attente</div>
   </header>
   <div class="grid">
@@ -53,7 +53,8 @@
     <button type="button" class="btn-green" id="btn-start" onclick="startRun()">Démarrer Manuellement</button>
     <button type="button" class="btn-red" id="btn-stop" onclick="stopRun()" disabled>Arrêter & Sauver</button>
   </div>
-  <div id="map"></div>
+  <canvas id="radar" width="400" height="260"></canvas>
+  <div class="hint">Radar GPS autonome : votre tracé et vos cellules se dessinent en direct (la dernière cellule est l'ARRIVÉE).</div>
   <div class="section-box">
     <div style="font-weight:700; margin-bottom:6px; font-size:0.9rem;">Temps intermédiaires</div>
     <div id="splits-list" style="color:#64748b; font-size:0.8rem;">En attente...</div>
@@ -65,35 +66,56 @@
     </div>
     <div id="history-list"></div>
   </div>
-  <script src="https://cloudflare.com"></script>
 
     <script>
-    let map, userMarker, currentPos = null, cells = [], isRunning = false, isArmed = false;
+    let currentPos = null, cells = [], track = [], isRunning = false, isArmed = false;
     let startTime = 0, timerInterval = null, splits = [], angleOffset = 0, rawGamma = 0;
     let maxSpeed = 0, maxG = 0, maxAngle = 0;
+    const canvas = document.getElementById('radar'), ctx = canvas.getContext('2d');
 
-    window.onload = function() {
-      if (typeof L !== 'undefined') {
-        map = L.map('map').setView([46.08, 4.06], 13);
-        L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
-          maxZoom: 20,
-          attribution: 'Esri Satellite'
-        }).addTo(map);
-        setTimeout(() => { map.invalidateSize(); }, 300);
-        map.on('click', e => addCell(e.latlng.lat, e.latlng.lng));
-      } else {
-        document.getElementById('map').innerHTML = "<div style='padding:20px; text-align:center; color:#ef4444;'>Carte bloquée par le réseau.</div>";
+    function drawRadar() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+      for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+      if (!currentPos) {
+        ctx.fillStyle = '#64748b'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('En attente du signal GPS extérieur...', canvas.width / 2, canvas.height / 2);
+        return;
       }
-    };
 
-    function addCell(lat, lng) {
-      if (!map) return;
-      const circle = L.circle([lat, lng], { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.35, radius: 6 }).addTo(map);
-      cells.push({ id: cells.length + 1, lat, lng, circle, passed: false });
+      const scale = 250000;
+      const toXY = (lat, lng) => ({
+        x: canvas.width / 2 + (lng - currentPos.lng) * scale * Math.cos(currentPos.lat * Math.PI / 180),
+        y: canvas.height / 2 - (lat - currentPos.lat) * scale
+      });
+
+      if (track.length > 1) {
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3; ctx.beginPath();
+        track.forEach((p, i) => { const pt = toXY(p.lat, p.lng); i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y); });
+        ctx.stroke();
+      }
+
+      cells.forEach((c, idx) => {
+        const pt = toXY(c.lat, c.lng), isLast = (idx === cells.length - 1);
+        ctx.fillStyle = isLast ? 'rgba(239, 68, 68, 0.3)' : 'rgba(56, 189, 248, 0.3)';
+        ctx.strokeStyle = isLast ? '#ef4444' : '#38bdf8'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(pt.x, pt.y, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(isLast ? 'FIN' : 'C' + c.id, pt.x, pt.y - 18);
+      });
+
+      ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(canvas.width / 2, canvas.height / 2, 6, 0, Math.PI * 2); ctx.fill();
     }
 
-    function addCellHere() { currentPos ? addCell(currentPos.lat, currentPos.lng) : alert("GPS en attente"); }
-    function clearCells() { if (map) cells.forEach(c => map.removeLayer(c.circle)); cells = []; }
+    function addCellHere() {
+      if (!currentPos) return alert("Sortez dehors pour capter le GPS avant de poser une cellule.");
+      cells.push({ id: cells.length + 1, lat: currentPos.lat, lng: currentPos.lng, passed: false });
+      drawRadar();
+    }
+
+    function clearCells() { cells = []; track = []; drawRadar(); }
 
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(pos => {
@@ -103,14 +125,12 @@
         gpsEl.classList.add('gps-ok');
         const kmh = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
         document.getElementById('speed').textContent = kmh.toFixed(1);
-        if (isRunning && kmh > maxSpeed) maxSpeed = kmh;
-        if (map) {
-          if (!userMarker) {
-            userMarker = L.circleMarker([currentPos.lat, currentPos.lng], { radius: 7, color: '#22c55e', fillOpacity: 1 }).addTo(map);
-            map.setView([currentPos.lat, currentPos.lng], 18);
-          } else { userMarker.setLatLng([currentPos.lat, currentPos.lng]); }
+        if (isRunning) {
+          if (kmh > maxSpeed) maxSpeed = kmh;
+          track.push(currentPos);
+          checkCells(currentPos.lat, currentPos.lng);
         }
-        if (isRunning) checkCells(currentPos.lat, currentPos.lng);
+        drawRadar();
       }, null, { enableHighAccuracy: true });
     }
 
@@ -166,16 +186,16 @@
 
     function startGate() {
       initSensors();
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      [0.5, 1.1, 1.7].forEach(t => { const o = ctx.createOscillator(); o.frequency.value = 632; o.connect(ctx.destination); o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.15); });
-      const o4 = ctx.createOscillator(); o4.frequency.value = 950; o4.connect(ctx.destination); o4.start(ctx.currentTime + 2.3); o4.stop(ctx.currentTime + 2.7);
+      const aCtx = new (window.AudioContext || window.webkitAudioContext)();
+      [0.5, 1.1, 1.7].forEach(t => { const o = aCtx.createOscillator(); o.frequency.value = 632; o.connect(aCtx.destination); o.start(aCtx.currentTime + t); o.stop(aCtx.currentTime + t + 0.15); });
+      const o4 = aCtx.createOscillator(); o4.frequency.value = 950; o4.connect(aCtx.destination); o4.start(aCtx.currentTime + 2.3); o4.stop(aCtx.currentTime + 2.7);
       setTimeout(() => { if (!isRunning) startRun(); }, 2300);
     }
 
     function startRun() {
       if (isRunning) return;
       isRunning = true; isArmed = false; startTime = Date.now();
-      splits = []; maxSpeed = 0; maxG = 0; maxAngle = 0;
+      splits = []; track = []; maxSpeed = 0; maxG = 0; maxAngle = 0;
       cells.forEach(c => c.passed = false);
       document.getElementById('splits-list').innerHTML = "En cours...";
       document.getElementById('btn-arm').textContent = "Armer Départ Auto (Mouvement)";
@@ -208,6 +228,7 @@
       const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = "bmx.csv"; a.click();
     }
 
+    drawRadar();
     renderHistory();
   </script>
 </body>
