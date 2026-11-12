@@ -4,443 +4,193 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>BMX iPhone Pro</title>
   <link rel="stylesheet" href="https://cloudflare.com" />
   <style>
-    :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --accent: #38bdf8;
-      --green: #22c55e;
-      --red: #ef4444;
-      --orange: #f59e0b;
-      --text: #f8fafc;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --text: #f8fafc; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 12px; padding-bottom: 40px; }
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    h1 { font-size: 1.2rem; font-weight: 800; letter-spacing: 0.5px; }
-    #gps-status { font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; background: #334155; font-weight: 600; }
+    h1 { font-size: 1.1rem; font-weight: 800; }
+    #gps-status { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; background: #334155; font-weight: 600; }
     .gps-ok { background: rgba(34, 197, 94, 0.2) !important; color: var(--green); }
-    
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .card { background: var(--card); border-radius: 14px; padding: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-    .val { font-size: 1.8rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); }
+    .card { background: var(--card); border-radius: 14px; padding: 12px; text-align: center; }
+    .val { font-size: 1.8rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
     .val.main-chrono { font-size: 2.2rem; color: #fff; }
-    .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
-
+    .label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; margin-top: 4px; }
     .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-    button { border: none; border-radius: 12px; padding: 14px 8px; font-size: 0.85rem; font-weight: 700; color: #fff; cursor: pointer; touch-action: manipulation; }
-    button:active { opacity: 0.7; }
-    button:disabled { opacity: 0.35; cursor: not-allowed; }
-    
+    button { border: none; border-radius: 12px; padding: 14px 8px; font-size: 0.85rem; font-weight: 700; color: #fff; cursor: pointer; }
+    button:disabled { opacity: 0.35; }
     .btn-blue { background: #0284c7; }
     .btn-orange { background: var(--orange); color: #000; }
     .btn-green { background: var(--green); color: #000; }
     .btn-red { background: var(--red); }
     .btn-gray { background: #475569; }
     .full-width { grid-column: span 2; }
-
-    .map-wrapper { position: relative; margin-bottom: 8px; }
-    #map { height: 240px; width: 100%; border-radius: 14px; background: #1e293b; z-index: 1; }
-    #btn-recenter { position: absolute; bottom: 10px; right: 10px; z-index: 1000; background: rgba(15, 23, 42, 0.85); color: #fff; padding: 8px 12px; font-size: 0.75rem; border: 1px solid #475569; }
-    .hint { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-bottom: 12px; }
-
+    #map { height: 240px; width: 100%; border-radius: 14px; background: #1e293b; margin-bottom: 8px; }
     .section-box { background: var(--card); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .section-title { font-size: 0.9rem; font-weight: 700; }
     .list-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; font-size: 0.85rem; }
-    .list-item:last-child { border-bottom: none; }
-    .badge { background: #334155; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>BMX iPhone Pro</h1>
-    <div id="gps-status">Recherche GPS...</div>
+    <h1>BMX Pro <span id="app-ready" style="color:#22c55e; font-size:0.7rem;">● PRÊT</span></h1>
+    <div id="gps-status">GPS en attente</div>
   </header>
 
   <div class="grid">
-    <div class="card">
-      <div class="val main-chrono" id="chrono">00.00</div>
-      <div class="label">Chrono (s)</div>
-    </div>
-    <div class="card">
-      <div class="val" id="speed">0.0</div>
-      <div class="label">Vitesse (km/h)</div>
-    </div>
-    <div class="card">
-      <div class="val" id="gforce">0.00</div>
-      <div class="label">Force G</div>
-    </div>
-    <div class="card">
-      <div class="val" id="angle">0°</div>
-      <div class="label">Angle Virage</div>
-    </div>
+    <div class="card"><div class="val main-chrono" id="chrono">00.00</div><div class="label">Chrono (s)</div></div>
+    <div class="card"><div class="val" id="speed">0.0</div><div class="label">Vitesse (km/h)</div></div>
+    <div class="card"><div class="val" id="gforce">0.00</div><div class="label">Force G</div></div>
+    <div class="card"><div class="val" id="angle">0°</div><div class="label">Angle Virage</div></div>
   </div>
 
   <div class="controls">
-    <button type="button" class="btn-blue" id="btn-calibrate">Calibrer 0° (Vélo droit)</button>
-    <button type="button" class="btn-orange" id="btn-gate">Grille Départ (Bip)</button>
-    <button type="button" class="btn-gray" id="btn-add-cell">+ Cellule ici</button>
-    <button type="button" class="btn-gray" id="btn-clear-cells">Effacer Cellules</button>
-    <button type="button" class="btn-orange full-width" id="btn-arm">Armer Départ Auto (Mouvement)</button>
-    <button type="button" class="btn-green" id="btn-start">Démarrer Manuellement</button>
-    <button type="button" class="btn-red" id="btn-stop" disabled>Arrêter & Sauvegarder</button>
+    <button type="button" class="btn-blue" onclick="calibrate()">Calibrer 0°</button>
+    <button type="button" class="btn-orange" onclick="startGate()">Grille Départ (Bip)</button>
+    <button type="button" class="btn-gray" onclick="addCellHere()">+ Cellule ici</button>
+    <button type="button" class="btn-gray" onclick="clearCells()">Effacer Cellules</button>
+    <button type="button" class="btn-orange full-width" id="btn-arm" onclick="armAuto()">Armer Départ Auto (Mouvement)</button>
+    <button type="button" class="btn-green" id="btn-start" onclick="startRun()">Démarrer Manuellement</button>
+    <button type="button" class="btn-red" id="btn-stop" onclick="stopRun()" disabled>Arrêter & Sauver</button>
   </div>
 
-  <div class="map-wrapper">
-    <div id="map"></div>
-    <button type="button" id="btn-recenter">Recentrer GPS</button>
-  </div>
-  <div class="hint">Touchez la carte pour placer vos secteurs. La dernière cellule est l'ARRIVÉE.</div>
+  <div id="map"></div>
 
   <div class="section-box">
-    <div class="section-header">
-      <span class="section-title">Temps intermédiaires (Run actuel)</span>
-    </div>
-    <div id="splits-list"><div style="color:#64748b; font-size:0.8rem;">En attente du départ...</div></div>
+    <div style="font-weight:700; margin-bottom:6px; font-size:0.9rem;">Temps intermédiaires</div>
+    <div id="splits-list" style="color:#64748b; font-size:0.8rem;">En attente...</div>
   </div>
 
   <div class="section-box">
-    <div class="section-header">
-      <span class="section-title">Historique sauvegardé</span>
-      <div>
-        <button type="button" class="btn-blue" id="btn-export" style="padding: 5px 10px; font-size: 0.75rem;">Exporter CSV</button>
-        <button type="button" class="btn-red" id="btn-clear-history" style="padding: 5px 10px; font-size: 0.75rem;">Vider</button>
-      </div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+      <span style="font-weight:700; font-size:0.9rem;">Historique</span>
+      <button type="button" class="btn-blue" onclick="exportCSV()" style="padding:4px 8px; font-size:0.75rem;">CSV</button>
     </div>
     <div id="history-list"></div>
   </div>
 
   <script src="https://cloudflare.com"></script>
   <script>
-    let map = null;
-    let userMarker = null;
-    let currentPos = null;
-    let cells = [];
-    let isRunning = false;
-    let isArmed = false;
-    let startTime = 0;
-    let timerInterval = null;
-    let splits = [];
-    let angleOffset = 0;
-    let rawGamma = 0;
-    let maxSpeed = 0;
-    let maxG = 0;
-    let maxAngle = 0;
-    let sensorsInitialized = false;
+    let map, userMarker, currentPos = null, cells = [], isRunning = false, isArmed = false;
+    let startTime = 0, timerInterval = null, splits = [], angleOffset = 0, rawGamma = 0;
+    let maxSpeed = 0, maxG = 0, maxAngle = 0;
 
-    // Initialisation sécurisée de la carte
-    try {
-      if (typeof L !== 'undefined') {
-        map = L.map('map').setView([46.603354, 1.888334], 5);
-        const satellite = L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
-          maxZoom: 20,
-          attribution: 'Esri'
-        }).addTo(map);
-        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: 'OSM'
-        });
-        L.control.layers({ "Satellite": satellite, "Plan": osm }).addTo(map);
-        setTimeout(() => { if (map) map.invalidateSize(); }, 500);
-
-        map.on('click', function(e) {
-          addCell(e.latlng.lat, e.latlng.lng);
-        });
-      }
-    } catch (e) {
-      console.log("Erreur carte ignorée:", e);
+    // Carte Satellite
+    if (typeof L !== 'undefined') {
+      map = L.map('map').setView([46.6033, 1.8883], 5);
+      L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', { maxZoom: 20 }).addTo(map);
+      map.on('click', function(e) { addCell(e.latlng.lat, e.latlng.lng); });
     }
-
-    document.getElementById('btn-recenter').addEventListener('click', function() {
-      if (currentPos && map) {
-        map.setView([currentPos.lat, currentPos.lng], 19);
-      } else {
-        alert("Position GPS pas encore captée. Sortez à l'extérieur.");
-      }
-    });
 
     function addCell(lat, lng) {
       if (!map) return;
-      const index = cells.length + 1;
-      const circle = L.circle([lat, lng], {
-        color: '#f59e0b',
-        fillColor: '#f59e0b',
-        fillOpacity: 0.35,
-        radius: 6
-      }).addTo(map);
-
-      cells.push({ id: index, lat: lat, lng: lng, circle: circle, passed: false });
-      updateCellLabels();
+      const circle = L.circle([lat, lng], { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.35, radius: 6 }).addTo(map);
+      cells.push({ id: cells.length + 1, lat: lat, lng: lng, circle: circle, passed: false });
     }
 
-    function updateCellLabels() {
-      cells.forEach(function(c, idx) {
-        const isLast = (idx === cells.length - 1);
-        c.circle.setStyle({
-          color: isLast ? '#ef4444' : '#38bdf8',
-          fillColor: isLast ? '#ef4444' : '#38bdf8'
-        });
-        c.circle.bindTooltip(isLast ? ("ARRIVÉE (C" + c.id + ")") : ("Secteur " + c.id), { permanent: true, direction: 'top' }).openTooltip();
+    function addCellHere() {
+      if (currentPos) addCell(currentPos.lat, currentPos.lng);
+      else alert("Attendez que le GPS passe au vert.");
+    }
+
+    function clearCells() {
+      if (map) cells.forEach(c => map.removeLayer(c.circle));
+      cells = [];
+    }
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition(function(pos) {
+        currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const gpsEl = document.getElementById('gps-status');
+        gpsEl.textContent = "GPS OK (±" + Math.round(pos.coords.accuracy) + "m)";
+        gpsEl.classList.add('gps-ok');
+        const kmh = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
+        document.getElementById('speed').textContent = kmh.toFixed(1);
+        if (isRunning && kmh > maxSpeed) maxSpeed = kmh;
+        if (map) {
+          if (!userMarker) {
+            userMarker = L.circleMarker([currentPos.lat, currentPos.lng], { radius: 7, color: '#22c55e', fillOpacity: 1 }).addTo(map);
+            map.setView([currentPos.lat, currentPos.lng], 19);
+          } else {
+            userMarker.setLatLng([currentPos.lat, currentPos.lng]);
+          }
+        }
+        if (isRunning) checkCells(currentPos.lat, currentPos.lng);
+      }, null, { enableHighAccuracy: true });
+    }
+
+    function checkCells(lat, lng) {
+      cells.forEach((cell, idx) => {
+        if (!cell.passed) {
+          const R = 6371e3, p1 = lat * Math.PI/180, p2 = cell.lat * Math.PI/180;
+          const dp = (cell.lat - lat) * Math.PI/180, dl = (cell.lng - lng) * Math.PI/180;
+          const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+          const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          if (dist <= 6) {
+            cell.passed = true;
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+            const isLast = (idx === cells.length - 1);
+            splits.push({ name: isLast ? "ARRIVÉE" : "Secteur " + cell.id, time: elapsed });
+            document.getElementById('splits-list').innerHTML = splits.map(s => `<div class="list-item"><span>${s.name}</span><b>${s.time}s</b></div>`).join('');
+            if (isLast) stopRun();
+          }
+        }
       });
     }
 
-    document.getElementById('btn-add-cell').addEventListener('click', function() {
-      if (currentPos) addCell(currentPos.lat, currentPos.lng);
-      else alert("Signal GPS en attente.");
-    });
-
-    document.getElementById('btn-clear-cells').addEventListener('click', function() {
-      if (map) cells.forEach(function(c) { map.removeLayer(c.circle); });
-      cells = [];
-    });
-
-    // GPS
-    if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition(function(pos) {
-        const latitude = pos.coords.latitude;
-        const longitude = pos.coords.longitude;
-        const speed = pos.coords.speed;
-        const accuracy = pos.coords.accuracy;
-        currentPos = { lat: latitude, lng: longitude };
-        
-        const gpsEl = document.getElementById('gps-status');
-        gpsEl.textContent = "GPS OK (±" + Math.round(accuracy) + "m)";
-        gpsEl.classList.add('gps-ok');
-
-        const kmh = speed ? (speed * 3.6) : 0;
-        document.getElementById('speed').textContent = kmh.toFixed(1);
-        if (isRunning && kmh > maxSpeed) maxSpeed = kmh;
-
-        if (map) {
-          if (!userMarker) {
-            userMarker = L.circleMarker([latitude, longitude], { radius: 7, color: '#22c55e', fillColor: '#22c55e', fillOpacity: 1 }).addTo(map);
-            map.setView([latitude, longitude], 19);
-          } else {
-            userMarker.setLatLng([latitude, longitude]);
-          }
-        }
-
-        if (isRunning) checkCells(latitude, longitude);
-      }, function(err) {
-        document.getElementById('gps-status').textContent = "GPS en attente";
-      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+    function initSensors() {
+      if (typeof DeviceMotionEvent !== 'undefined' && DeviceMotionEvent.requestPermission) {
+        DeviceMotionEvent.requestPermission().then(r => { if (r === 'granted') window.addEventListener('devicemotion', onMotion); }).catch(()=>{});
+      } else { window.addEventListener('devicemotion', onMotion); }
+      if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) {
+        DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') window.addEventListener('deviceorientation', onOrient); }).catch(()=>{});
+      } else { window.addEventListener('deviceorientation', onOrient); }
     }
 
-    function getDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371e3;
-      const p1 = lat1 * Math.PI / 180;
-Utilisez le code avec précaution.
-const p2 = lat2 * Math.PI / 180;
-const dp = (lat2 - lat1) * Math.PI / 180;
-const dl = (lon2 - lon1) * Math.PI / 180;
-const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-function checkCells(lat, lng) {
-cells.forEach(function(cell, idx) {
-if (!cell.passed) {
-const dist = getDistance(lat, lng, cell.lat, cell.lng);
-if (dist <= 6) {
-cell.passed = true;
-const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-const isLast = (idx === cells.length - 1);
-splits.push({ name: isLast ? "ARRIVÉE" : ("Secteur " + cell.id), time: elapsed });
-renderSplits();
-if (isLast) stopRun();
-}
-}
-});
-}
-// Capteurs iPhone isolés pour ne jamais bloquer le chrono
-function initSensors() {
-if (sensorsInitialized) return;
-sensorsInitialized = true;
-try {
-if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-DeviceMotionEvent.requestPermission().then(function(res) {
-if (res === 'granted') window.addEventListener('devicemotion', handleMotion);
-}).catch(function() {});
-} else {
-window.addEventListener('devicemotion', handleMotion);
-}
-if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-DeviceOrientationEvent.requestPermission().then(function(res) {
-if (res === 'granted') window.addEventListener('deviceorientation', handleOrientation);
-}).catch(function() {});
-} else {
-window.addEventListener('deviceorientation', handleOrientation);
-}
-} catch (e) {}
-}
-function handleMotion(e) {
-const acc = e.accelerationIncludingGravity;
-if (acc && acc.x !== null) {
-const totalAcc = Math.sqrt(acc.xacc.x + acc.yacc.y + acc.z*acc.z);
-const g = totalAcc / 9.81;
-document.getElementById('gforce').textContent = g.toFixed(2);
-if (isRunning && g > maxG) maxG = g;
-}
-const linAcc = e.acceleration;
-if (isArmed && linAcc && linAcc.x !== null) {
-const moveForce = Math.sqrt(linAcc.xlinAcc.x + linAcc.ylinAcc.y + linAcc.z*linAcc.z);
-if (moveForce > 2.2) {
-isArmed = false;
-startRun();
-}
-}
-}
-function handleOrientation(e) {
-if (e.gamma === null) return;
-rawGamma = e.gamma;
-const calibrated = Math.round(rawGamma - angleOffset);
-document.getElementById('angle').textContent = calibrated + "°";
-if (isRunning && Math.abs(calibrated) > maxAngle) maxAngle = Math.abs(calibrated);
-}
-document.getElementById('btn-calibrate').addEventListener('click', function() {
-initSensors();
-angleOffset = rawGamma;
-document.getElementById('angle').textContent = "0°";
-});
-// Grille de départ sonore
-document.getElementById('btn-gate').addEventListener('click', function() {
-initSensors();
-try {
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-const ctx = new AudioCtx();
-const playTone = function(freq, delay, duration) {
-const osc = ctx.createOscillator();
-const gain = ctx.createGain();
-osc.frequency.value = freq;
-osc.connect(gain);
-gain.connect(ctx.destination);
-osc.start(ctx.currentTime + delay);
-osc.stop(ctx.currentTime + delay + duration);
-};
-playTone(632, 0.5, 0.15);
-playTone(632, 1.1, 0.15);
-playTone(632, 1.7, 0.15);
-playTone(950, 2.3, 0.4);
-} catch (e) {}
-setTimeout(function() { if (!isRunning) startRun(); }, 2300);
-});
-// Gestion Chrono (Démarrage immédiat garanti)
-document.getElementById('btn-arm').addEventListener('click', function() {
-initSensors();
-isArmed = true;
-const btn = document.getElementById('btn-arm');
-btn.textContent = "PRÊT - BOUGEZ POUR PARTIR...";
-btn.style.background = "#ef4444";
-});
-document.getElementById('btn-start').addEventListener('click', function() {
-startRun();
-initSensors();
-});
-document.getElementById('btn-stop').addEventListener('click', function() {
-stopRun();
-});
-function startRun() {
-if (isRunning) return;
-isRunning = true;
-isArmed = false;
-startTime = Date.now();
-splits = [];
-maxSpeed = 0;
-maxG = 0;
-maxAngle = 0;
-cells.forEach(function(c) { c.passed = false; });
-renderSplits();
-const btnArm = document.getElementById('btn-arm');
-btnArm.textContent = "Armer Départ Auto (Mouvement)";
-btnArm.style.background = "";
-document.getElementById('btn-start').disabled = true;
-document.getElementById('btn-stop').disabled = false;
-if (timerInterval) clearInterval(timerInterval);
-timerInterval = setInterval(function() {
-const now = (Date.now() - startTime) / 1000;
-document.getElementById('chrono').textContent = now.toFixed(2);
-}, 30);
-}
-function stopRun() {
-if (!isRunning) return;
-isRunning = false;
-if (timerInterval) clearInterval(timerInterval);
-const finalTime = document.getElementById('chrono').textContent;
-document.getElementById('btn-start').disabled = false;
-document.getElementById('btn-stop').disabled = true;
-saveRun(finalTime);
-}
-function renderSplits() {
-const container = document.getElementById('splits-list');
-if (splits.length === 0) {
-container.innerHTML = 'En cours...';
-return;
-}
-container.innerHTML = splits.map(function(s) {
-return '' + s.name + '' + s.time + ' s';
-}).join('');
-}
-// Sauvegarde & Historique
-function saveRun(time) {
-try {
-const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
-const run = {
-date: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-time: time,
-maxSpeed: maxSpeed.toFixed(1),
-maxG: maxG.toFixed(2),
-maxAngle: maxAngle,
-splits: splits.map(function(s) { return s.name + ':' + s.time + 's'; }).join(' | ')
-};
-history.unshift(run);
-localStorage.setItem('bmx_runs', JSON.stringify(history));
-renderHistory();
-} catch (e) {}
-}
-function renderHistory() {
-const container = document.getElementById('history-list');
-try {
-const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
-if (history.length === 0) {
-container.innerHTML = 'Aucun run enregistré.';
-return;
-}
-container.innerHTML = history.map(function(r) {
-return '' +
-'' +
-'' + r.date + ' — ' + r.time + ' s' +
-'' + r.maxSpeed + ' km/h' +
-'' +
-'' +
-'Max G: ' + r.maxG + 'G | Angle Max: ' + r.maxAngle + '° ' + (r.splits ? ('
-' + r.splits) : '') +
-'' +
-'';
-}).join('');
-} catch (e) {
-container.innerHTML = 'Historique prêt.';
-}
-}
-document.getElementById('btn-clear-history').addEventListener('click', function() {
-localStorage.removeItem('bmx_runs');
-renderHistory();
-});
-document.getElementById('btn-export').addEventListener('click', function() {
-const history = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
-if (history.length === 0) return alert("Aucune donnée à exporter.");
-let csv = "Heure;Temps (s);Vitesse Max (km/h);Force G Max;Angle Max;Intermediaires\n";
-history.forEach(function(r) {
-csv += r.date + ";" + r.time + ";" + r.maxSpeed + ";" + r.maxG + ";" + r.maxAngle + ';"' + r.splits + '"\n';
-});
-const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-const url = URL.createObjectURL(blob);
-const a = document.createElement("a");
-a.href = url;
-a.download = "bmx_chrono_runs.csv";
-a.click();
-});
-renderHistory();
+    function onMotion(e) {
+      const a = e.accelerationIncludingGravity;
+      if (a && a.x !== null) {
+        const g = Math.sqrt(a.x**2 + a.y**2 + a.z**2) / 9.81;
+        document.getElementById('gforce').textContent = g.toFixed(2);
+        if (isRunning && g > maxG) maxG = g;
+      }
+      const l = e.acceleration;
+      if (isArmed && l && l.x !== null && Math.sqrt(l.x**2 + l.y**2 + l.z**2) > 2.2) {
+        isArmed = false;
+        startRun();
+      }
+    }
+
+    function onOrient(e) {
+      if (e.gamma !== null) {
+        rawGamma = e.gamma;
+        const ang = Math.round(rawGamma - angleOffset);
+        document.getElementById('angle').textContent = ang + "°";
+        if (isRunning && Math.abs(ang) > maxAngle) maxAngle = Math.abs(ang);
+      }
+    }
+
+    function calibrate() { initSensors(); angleOffset = rawGamma; document.getElementById('angle').textContent = "0°"; }
+
+    function armAuto() {
+      initSensors();
+      isArmed = true;
+      document.getElementById('btn-arm').textContent = "PRÊT - BOUGEZ...";
+      document.getElementById('btn-arm').style.background = "#ef4444";
+    }
+
+    function startGate() {
+      initSensors();
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0.5, 1.1, 1.7].forEach(t => {
+        const o = ctx.createOscillator(); o.frequency.value = 632; o.connect(ctx.destination);
+        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.15);
+      });
+      const o4 = ctx.createOscillator(); o4.frequency.value = 950; o4.connect(ctx.destination);
+      o4.start(ctx.currentTime + 2.3); o4.stop(ctx.currentTime + 2.7);
+      setTimeout(() => { if (!isRunning) startRun(); }, 2300);
+    }
+
