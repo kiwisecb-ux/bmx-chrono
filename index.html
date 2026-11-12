@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>BMX iPhone Pro</title>
+  <title>BMX Pro</title>
   <link rel="stylesheet" href="https://unpkg.com" />
   <style>
     :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --text: #f8fafc; }
@@ -34,19 +34,16 @@
   </style>
 </head>
 <body>
-
   <header>
-    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● V3</span></h1>
+    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● V4</span></h1>
     <div id="gps-status">GPS en attente</div>
   </header>
-
   <div class="grid">
     <div class="card"><div class="val main-chrono" id="chrono">00.00</div><div class="label">Chrono (s)</div></div>
     <div class="card"><div class="val" id="speed">0.0</div><div class="label">Vitesse (km/h)</div></div>
     <div class="card"><div class="val" id="gforce">0.00</div><div class="label">Force G</div></div>
     <div class="card"><div class="val" id="angle">0°</div><div class="label">Angle Virage</div></div>
   </div>
-
   <div class="controls">
     <button type="button" class="btn-blue" onclick="calibrate()">Calibrer 0°</button>
     <button type="button" class="btn-orange" onclick="startGate()">Grille Départ (Bip)</button>
@@ -56,14 +53,11 @@
     <button type="button" class="btn-green" id="btn-start" onclick="startRun()">Démarrer Manuellement</button>
     <button type="button" class="btn-red" id="btn-stop" onclick="stopRun()" disabled>Arrêter & Sauver</button>
   </div>
-
   <div id="map"></div>
-
   <div class="section-box">
     <div style="font-weight:700; margin-bottom:6px; font-size:0.9rem;">Temps intermédiaires</div>
     <div id="splits-list" style="color:#64748b; font-size:0.8rem;">En attente...</div>
   </div>
-
   <div class="section-box">
     <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
       <span style="font-weight:700; font-size:0.9rem;">Historique</span>
@@ -71,9 +65,9 @@
     </div>
     <div id="history-list"></div>
   </div>
-
   <script src="https://unpkg.com"></script>
-  <script>
+
+    <script>
     let map, userMarker, currentPos = null, cells = [], isRunning = false, isArmed = false;
     let startTime = 0, timerInterval = null, splits = [], angleOffset = 0, rawGamma = 0;
     let maxSpeed = 0, maxG = 0, maxAngle = 0;
@@ -81,27 +75,20 @@
     if (typeof L !== 'undefined') {
       map = L.map('map').setView([46.6033, 1.8883], 5);
       L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', { maxZoom: 20 }).addTo(map);
-      map.on('click', function(e) { addCell(e.latlng.lat, e.latlng.lng); });
+      map.on('click', e => addCell(e.latlng.lat, e.latlng.lng));
     }
 
     function addCell(lat, lng) {
       if (!map) return;
       const circle = L.circle([lat, lng], { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.35, radius: 6 }).addTo(map);
-      cells.push({ id: cells.length + 1, lat: lat, lng: lng, circle: circle, passed: false });
+      cells.push({ id: cells.length + 1, lat, lng, circle, passed: false });
     }
 
-    function addCellHere() {
-      if (currentPos) addCell(currentPos.lat, currentPos.lng);
-      else alert("Attendez que le GPS passe au vert.");
-    }
-
-    function clearCells() {
-      if (map) cells.forEach(c => map.removeLayer(c.circle));
-      cells = [];
-    }
+    function addCellHere() { currentPos ? addCell(currentPos.lat, currentPos.lng) : alert("GPS en attente"); }
+    function clearCells() { if (map) cells.forEach(c => map.removeLayer(c.circle)); cells = []; }
 
     if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition(function(pos) {
+      navigator.geolocation.watchPosition(pos => {
         currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         const gpsEl = document.getElementById('gps-status');
         gpsEl.textContent = "GPS OK (±" + Math.round(pos.coords.accuracy) + "m)";
@@ -113,9 +100,7 @@
           if (!userMarker) {
             userMarker = L.circleMarker([currentPos.lat, currentPos.lng], { radius: 7, color: '#22c55e', fillOpacity: 1 }).addTo(map);
             map.setView([currentPos.lat, currentPos.lng], 19);
-          } else {
-            userMarker.setLatLng([currentPos.lat, currentPos.lng]);
-          }
+          } else { userMarker.setLatLng([currentPos.lat, currentPos.lng]); }
         }
         if (isRunning) checkCells(currentPos.lat, currentPos.lng);
       }, null, { enableHighAccuracy: true });
@@ -127,8 +112,7 @@
           const R = 6371e3, p1 = lat * Math.PI/180, p2 = cell.lat * Math.PI/180;
           const dp = (cell.lat - lat) * Math.PI/180, dl = (cell.lng - lng) * Math.PI/180;
           const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
-          const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          if (dist <= 6) {
+          if (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) <= 6) {
             cell.passed = true;
             const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
             const isLast = (idx === cells.length - 1);
@@ -157,10 +141,7 @@
         if (isRunning && g > maxG) maxG = g;
       }
       const l = e.acceleration;
-      if (isArmed && l && l.x !== null && Math.sqrt(l.x**2 + l.y**2 + l.z**2) > 2.2) {
-        isArmed = false;
-        startRun();
-      }
+      if (isArmed && l && l.x !== null && Math.sqrt(l.x**2 + l.y**2 + l.z**2) > 2.2) { isArmed = false; startRun(); }
     }
 
     function onOrient(e) {
@@ -173,25 +154,53 @@
     }
 
     function calibrate() { initSensors(); angleOffset = rawGamma; document.getElementById('angle').textContent = "0°"; }
-
-    function armAuto() {
-      initSensors();
-      isArmed = true;
-      document.getElementById('btn-arm').textContent = "PRÊT - BOUGEZ...";
-      document.getElementById('btn-arm').style.background = "#ef4444";
-    }
+    function armAuto() { initSensors(); isArmed = true; document.getElementById('btn-arm').textContent = "PRÊT - BOUGEZ..."; document.getElementById('btn-arm').style.background = "#ef4444"; }
 
     function startGate() {
       initSensors();
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      [0.5, 1.1, 1.7].forEach(t => {
-        const o = ctx.createOscillator(); o.frequency.value = 632; o.connect(ctx.destination);
-        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.15);
-      });
-      const o4 = ctx.createOscillator(); o4.frequency.value = 950; o4.connect(ctx.destination);
-      o4.start(ctx.currentTime + 2.3); o4.stop(ctx.currentTime + 2.7);
+      [0.5, 1.1, 1.7].forEach(t => { const o = ctx.createOscillator(); o.frequency.value = 632; o.connect(ctx.destination); o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.15); });
+      const o4 = ctx.createOscillator(); o4.frequency.value = 950; o4.connect(ctx.destination); o4.start(ctx.currentTime + 2.3); o4.stop(ctx.currentTime + 2.7);
       setTimeout(() => { if (!isRunning) startRun(); }, 2300);
     }
 
     function startRun() {
       if (isRunning) return;
+      isRunning = true; isArmed = false; startTime = Date.now();
+      splits = []; maxSpeed = 0; maxG = 0; maxAngle = 0;
+      cells.forEach(c => c.passed = false);
+      document.getElementById('splits-list').innerHTML = "En cours...";
+      document.getElementById('btn-arm').textContent = "Armer Départ Auto (Mouvement)";
+      document.getElementById('btn-arm').style.background = "";
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-stop').disabled = false;
+      timerInterval = setInterval(() => { document.getElementById('chrono').textContent = ((Date.now() - startTime) / 1000).toFixed(2); }, 30);
+    }
+
+    function stopRun() {
+      if (!isRunning) return;
+      isRunning = false; clearInterval(timerInterval);
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-stop').disabled = true;
+      const h = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
+      h.unshift({ date: new Date().toLocaleTimeString(), time: document.getElementById('chrono').textContent, speed: maxSpeed.toFixed(1), g: maxG.toFixed(2), ang: maxAngle });
+      localStorage.setItem('bmx_runs', JSON.stringify(h));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const h = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
+      document.getElementById('history-list').innerHTML = h.length ? h.map(r => `<div class="list-item"><span>${r.date} — <b>${r.time}s</b></span><span>${r.speed} km/h | ${r.g}G | ${r.ang}°</span></div>`).join('') : '<div style="color:#64748b; font-size:0.8rem;">Aucun run</div>';
+    }
+
+    function exportCSV() {
+      const h = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
+      if (!h.length) return alert("Vide");
+      const csv = "Heure;Temps;Vitesse;G;Angle\n" + h.map(r => `${r.date};${r.time};${r.speed};${r.g};${r.ang}`).join('\n');
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = "bmx.csv"; a.click();
+    }
+
+    renderHistory();
+  </script>
+</body>
+</html>
