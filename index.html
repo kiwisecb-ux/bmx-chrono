@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>BMX iPhone Pro</title>
-  <link rel="stylesheet" href="https://cloudflare.com" />
+  <link rel="stylesheet" href="https://unpkg.com" />
   <style>
     :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --text: #f8fafc; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
@@ -36,7 +36,7 @@
 <body>
 
   <header>
-    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● V2</span></h1>
+    <h1>BMX Pro <span style="color:#22c55e; font-size:0.7rem;">● V3</span></h1>
     <div id="gps-status">GPS en attente</div>
   </header>
 
@@ -72,7 +72,7 @@
     <div id="history-list"></div>
   </div>
 
-  <script src="https://cloudflare.com"></script>
+  <script src="https://unpkg.com"></script>
   <script>
     let map, userMarker, currentPos = null, cells = [], isRunning = false, isArmed = false;
     let startTime = 0, timerInterval = null, splits = [], angleOffset = 0, rawGamma = 0;
@@ -194,50 +194,4 @@
     }
 
     function startRun() {
-Utilisez le code avec précaution.
-if (isRunning) return;
-isRunning = true; isArmed = false; startTime = Date.now();
-splits = []; maxSpeed = 0; maxG = 0; maxAngle = 0;
-cells.forEach(c => c.passed = false);
-document.getElementById('splits-list').innerHTML = "En cours...";
-document.getElementById('btn-arm').textContent = "Armer Départ Auto (Mouvement)";
-document.getElementById('btn-arm').style.background = "";
-document.getElementById('btn-start').disabled = true;
-document.getElementById('btn-stop').disabled = false;
-timerInterval = setInterval(() => {
-document.getElementById('chrono').textContent = ((Date.now() - startTime) / 1000).toFixed(2);
-}, 30);
-}
-function stopRun() {
-if (!isRunning) return;
-isRunning = false; clearInterval(timerInterval);
-document.getElementById('btn-start').disabled = false;
-document.getElementById('btn-stop').disabled = true;
-const h = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
-h.unshift({ date: new Date().toLocaleTimeString(), time: document.getElementById('chrono').textContent, speed: maxSpeed.toFixed(1), g: maxG.toFixed(2), ang: maxAngle });
-localStorage.setItem('bmx_runs', JSON.stringify(h));
-renderHistory();
-}
-function renderHistory() {
-const h = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
-document.getElementById('history-list').innerHTML = h.length ? h.map(r => <div class="list-item"><span>${r.date} — <b>${r.time}s</b></span><span>${r.speed} km/h | ${r.g}G | ${r.ang}°</span></div>).join('') : 'Aucun run';
-}
-function exportCSV() {
-const h = JSON.parse(localStorage.getItem('bmx_runs') || '[]');
-if (!h.length) return alert("Vide");
-const csv = "Heure;Temps;Vitesse;G;Angle\n" + h.map(r => ${r.date};${r.time};${r.speed};${r.g};${r.ang}).join('\n');
-const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = "bmx.csv"; a.click();
-}
-renderHistory();
-
-
-
-### Vérification rapide avant d'enregistrer sur GitHub :
-1. Cliquez sur l'icône **Copier** tout en haut à droite de la boîte noire ci-dessus.
-2. Collez dans votre fichier **`index.html`** sur GitHub (après avoir tout effacé).
-3. Vérifiez que tout en haut, le titre indique bien **`BMX Pro ● V2`** et que les 3 dernières lignes tout en bas sont bien :
-   ```html
-       renderHistory();
-     </script>
-   </body>
-   </html>
+      if (isRunning) return;
